@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TaskStatus } from '@phd/shared-types';
 import type { CreateTaskDto, UpdateTaskDto, MoveTaskDto, TaskResponseDto } from '@phd/shared-types';
+import { authHeaders } from '../lib/api';
 
 const API_BASE = '/api/v1/tasks';
 
@@ -10,7 +11,7 @@ export function useTasks(status?: TaskStatus) {
   return useQuery<TaskResponseDto[]>({
     queryKey: ['tasks', status],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}${params}`);
+      const res = await fetch(`${API_BASE}${params}`, { headers: authHeaders() });
       if (!res.ok) throw new Error('获取任务列表失败');
       return res.json();
     },
@@ -24,7 +25,7 @@ export function useCreateTask() {
     mutationFn: async (dto) => {
       const res = await fetch(API_BASE, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) throw new Error('创建任务失败');
@@ -43,7 +44,7 @@ export function useUpdateTask() {
     mutationFn: async ({ id, dto }) => {
       const res = await fetch(`${API_BASE}/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) throw new Error('更新任务失败');
@@ -62,7 +63,7 @@ export function useMoveTask() {
     mutationFn: async ({ id, dto }) => {
       const res = await fetch(`${API_BASE}/${id}/move`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) throw new Error('移动任务失败');
@@ -79,7 +80,7 @@ export function useDeleteTask() {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
     mutationFn: async (id) => {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE', headers: authHeaders(false) });
       if (!res.ok) throw new Error('删除任务失败');
     },
     onSuccess: () => {

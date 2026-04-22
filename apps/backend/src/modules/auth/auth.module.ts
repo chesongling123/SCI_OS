@@ -1,11 +1,20 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { JwtStrategy } from './jwt.strategy';
 
-/**
- * 认证模块（Phase 1 预留骨架，Phase 2 实现 JWT + OAuth2）
- * 职责：JWT 签发/校验、OAuth2 社交登录、Refresh Token 轮转
- */
 @Module({
-  controllers: [], // AuthController
-  providers: [],   // AuthService, JwtStrategy
+  imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'phd-os-dev-secret-change-in-production',
+      signOptions: { expiresIn: '7d' },
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

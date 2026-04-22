@@ -2,21 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
 import { CreateEventDto, UpdateEventDto } from './dto';
 
-/**
- * 日程服务
- * 职责：事件 CRUD、RRULE 展开、时区处理
- */
 @Injectable()
 export class CalendarService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * 获取事件列表
-   * 支持时间范围过滤，默认排除已软删除的事件
-   */
-  async findAll(startFrom?: string, startTo?: string) {
+  async findAll(userId: string, startFrom?: string, startTo?: string) {
     return this.prisma.event.findMany({
       where: {
+        userId,
         deletedAt: null,
         ...(startFrom || startTo
           ? {
@@ -31,28 +24,15 @@ export class CalendarService {
     });
   }
 
-  /**
-   * 获取单个事件
-   */
-  async findOne(id: string) {
-    const event = await this.prisma.event.findUnique({
-      where: { id, deletedAt: null },
+  async findOne(userId: string, id: string) {
+    const event = await this.prisma.event.findFirst({
+      where: { id, userId, deletedAt: null },
     });
     if (!event) throw new NotFoundException(`事件 ${id} 不存在`);
     return event;
   }
 
-  /**
-   * 创建事件
-   */
-  async create(dto: CreateEventDto) {
-    // Phase 1：自动关联默认用户
-    const defaultUser = await this.prisma.user.upsert({
-      where: { email: 'demo@phd-os.local' },
-      update: {},
-      create: { email: 'demo@phd-os.local', name: '演示用户' },
-    });
-
+  async create(userId: string, dto: CreateEventDto) {
     return this.prisma.event.create({
       data: {
         title: dto.title,
@@ -64,16 +44,13 @@ export class CalendarService {
         location: dto.location ?? null,
         description: dto.description ?? null,
         color: dto.color ?? null,
-        userId: defaultUser.id,
+        userId,
       } as any,
     });
   }
 
-  /**
-   * 更新事件
-   */
-  async update(id: string, dto: UpdateEventDto) {
-    await this.findOne(id);
+  async update(userId: string, id: string, dto: UpdateEventDto) {
+    await this.findOne(userId, id);
 
     return this.prisma.event.update({
       where: { id },
@@ -91,11 +68,8 @@ export class CalendarService {
     });
   }
 
-  /**
-   * 软删除事件
-   */
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(userId: string, id: string) {
+    await this.findOne(userId, id);
     return this.prisma.event.update({
       where: { id },
       data: { deletedAt: new Date() },

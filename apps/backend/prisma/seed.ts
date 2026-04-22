@@ -12,8 +12,10 @@ async function main() {
   await prisma.user.deleteMany();
 
   // 创建默认用户
-  const user = await prisma.user.create({
-    data: { email: 'demo@phd-os.local', name: '演示用户' },
+  const user = await prisma.user.upsert({
+    where: { email: 'demo@phd-os.local' },
+    update: {},
+    create: { email: 'demo@phd-os.local', name: '演示用户', password: '$2b$10$cFhE6/.sYggl3eB5nbCEGeUIvlvO4K3BB4u96GZEMzQierFjq9YwG' },
   });
 
   // ========== 任务种子数据 ==========

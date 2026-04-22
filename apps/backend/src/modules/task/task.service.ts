@@ -3,21 +3,14 @@ import { PrismaService } from '../../shared/prisma.service';
 import { CreateTaskDto, UpdateTaskDto, MoveTaskDto } from './dto';
 import { TaskStatus } from '@phd/shared-types';
 
-/**
- * 任务服务
- * 职责：任务 CRUD、拖拽排序、软删除
- */
 @Injectable()
 export class TaskService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * 获取任务列表，按状态分组、排序位置排序
-   * 支持按状态过滤，默认排除已软删除的任务
-   */
-  async findAll(status?: TaskStatus) {
+  async findAll(userId: string, status?: TaskStatus) {
     return this.prisma.task.findMany({
       where: {
+        userId,
         deletedAt: null,
         ...(status ? { status } : {}),
       },
@@ -25,19 +18,7 @@ export class TaskService {
     });
   }
 
-  /**
-   * 创建任务
-   * 自动计算 sortOrder（放到对应状态列的末尾）
-   */
-  async create(dto: CreateTaskDto) {
-    // Phase 1：自动创建/获取默认用户（TODO: Phase 2 接入真实认证）
-    const defaultUser = await this.prisma.user.upsert({
-      where: { email: 'demo@phd-os.local' },
-      update: {},
-      create: { email: 'demo@phd-os.local', name: '演示用户' },
-    });
-
-    // 获取当前状态列的最大 sortOrder
+  async create(userId: string, dto: CreateTaskDto) {
     const lastTask = await this.prisma.task.findFirst({
       where: { status: dto.status ?? TaskStatus.TODO, deletedAt: null },
       orderBy: { sortOrder: 'desc' },
@@ -52,16 +33,13 @@ export class TaskService {
         priority: dto.priority ?? 4,
         sortOrder,
         pomodoroCount: dto.pomodoroCount ?? 0,
-        userId: defaultUser.id,
+        userId,
       } as any,
     });
   }
 
-  /**
-   * 更新任务
-   */
-  async update(id: string, dto: UpdateTaskDto) {
-    await this.ensureExists(id);
+  async update(userId: string, id: string, dto: UpdateTaskDto) {
+    await this.ensureExists(userId, id);
 
     return this.prisma.task.update({
       where: { id },
@@ -75,12 +53,8 @@ export class TaskService {
     });
   }
 
-  /**
-   * 拖拽移动任务（跨列/同列重排）
-   * 核心接口：更新状态 + 排序位置
-   */
-  async move(id: string, dto: MoveTaskDto) {
-    await this.ensureExists(id);
+  async move(userId: string, id: string, dto: MoveTaskDto) {
+    await this.ensureExists(userId, id);
 
     return this.prisma.task.update({
       where: { id },
@@ -91,11 +65,8 @@ export class TaskService {
     });
   }
 
-  /**
-   * 软删除任务
-   */
-  async remove(id: string) {
-    await this.ensureExists(id);
+  async remove(userId: string, id: string) {
+    await this.ensureExists(userId, id);
 
     return this.prisma.task.update({
       where: { id },
@@ -103,12 +74,9 @@ export class TaskService {
     });
   }
 
-  /**
-   * 确保任务存在且未被删除
-   */
-  private async ensureExists(id: string) {
-    const task = await this.prisma.task.findUnique({
-      where: { id, deletedAt: null },
+  private async ensureExists(userId: string, id: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id, userId, deletedAt: null },
     });
     if (!task) {
       throw new NotFoundException(`任务 ${id} 不存在或已被删除`);

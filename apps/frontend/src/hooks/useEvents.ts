@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateEventDto, UpdateEventDto, EventResponseDto } from '@phd/shared-types';
+import { authHeaders } from '../lib/api';
 
 const API_BASE = '/api/v1/calendar/events';
 
@@ -13,7 +14,7 @@ export function useEvents(startFrom?: string, startTo?: string) {
   return useQuery<EventResponseDto[]>({
     queryKey: ['events', startFrom, startTo],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}${qs ? '?' + qs : ''}`);
+      const res = await fetch(`${API_BASE}${qs ? '?' + qs : ''}`, { headers: authHeaders() });
       if (!res.ok) throw new Error('获取事件列表失败');
       return res.json();
     },
@@ -27,7 +28,7 @@ export function useCreateEvent() {
     mutationFn: async (dto) => {
       const res = await fetch(API_BASE, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) throw new Error('创建事件失败');
@@ -46,7 +47,7 @@ export function useUpdateEvent() {
     mutationFn: async ({ id, dto }) => {
       const res = await fetch(`${API_BASE}/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) throw new Error('更新事件失败');
@@ -63,7 +64,7 @@ export function useDeleteEvent() {
   const queryClient = useQueryClient();
   return useMutation<void, Error, string>({
     mutationFn: async (id) => {
-      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE', headers: authHeaders(false) });
       if (!res.ok) throw new Error('删除事件失败');
     },
     onSuccess: () => {

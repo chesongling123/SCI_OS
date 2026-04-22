@@ -5,6 +5,7 @@ import type {
   PomodoroSessionResponseDto,
   PomodoroStatsDto,
 } from '@phd/shared-types';
+import { authHeaders } from '../lib/api';
 
 const API_BASE = '/api/v1/pomodoro';
 
@@ -15,7 +16,7 @@ export function useCreatePomodoroSession() {
     mutationFn: async (dto) => {
       const res = await fetch(`${API_BASE}/sessions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) throw new Error('开始番茄钟失败');
@@ -34,7 +35,7 @@ export function useEndPomodoroSession() {
     mutationFn: async ({ id, dto }) => {
       const res = await fetch(`${API_BASE}/sessions/${id}/end`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify(dto),
       });
       if (!res.ok) throw new Error('结束番茄钟失败');
@@ -56,7 +57,7 @@ export function useTodayStats() {
   }>({
     queryKey: ['pomodoro', 'stats', 'today'],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/stats/today`);
+      const res = await fetch(`${API_BASE}/stats/today`, { headers: authHeaders() });
       if (!res.ok) throw new Error('获取今日统计失败');
       return res.json();
     },
@@ -68,7 +69,7 @@ export function useDailyStats(days = 365) {
   return useQuery<PomodoroStatsDto[]>({
     queryKey: ['pomodoro', 'stats', 'daily', days],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/stats/daily?days=${days}`);
+      const res = await fetch(`${API_BASE}/stats/daily?days=${days}`, { headers: authHeaders() });
       if (!res.ok) throw new Error('获取统计失败');
       return res.json();
     },
