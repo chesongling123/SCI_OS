@@ -492,3 +492,81 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
 }
 
+/* ============================================
+   ConfirmDialog — 高对比度液态玻璃弹窗
+   比普通 glass card 更不透明，确保可读性
+   ============================================ */
+
+.confirm-dialog {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 24px 64px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.confirm-dialog-title {
+  color: #1f2937;
+}
+
+.confirm-dialog-desc {
+  color: #4b5563;
+}
+
+.confirm-dialog-close {
+  color: #9ca3af;
+}
+.confirm-dialog-close:hover {
+  color: #374151;
+}
+
+.confirm-dialog-cancel {
+  background: rgba(0, 0, 0, 0.05);
+  color: #374151;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.confirm-dialog-cancel:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+}
+
+/* 深色模式 */
+[data-theme="dark"] .confirm-dialog {
+  background: rgba(18, 18, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 24px 64px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .confirm-dialog-title {
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] .confirm-dialog-desc {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .confirm-dialog-close {
+  color: #6b7280;
+}
+[data-theme="dark"] .confirm-dialog-close:hover {
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .confirm-dialog-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .confirm-dialog-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f3f4f6;
+}
+

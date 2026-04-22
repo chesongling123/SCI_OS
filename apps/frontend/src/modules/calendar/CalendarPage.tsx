@@ -6,6 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import type { EventClickArg, DateSelectArg, EventDropArg } from '@fullcalendar/core';
 import { Loader2 } from 'lucide-react';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '../../hooks/useEvents';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import EventDialog from './EventDialog';
 import type { CreateEventDto, EventResponseDto } from '@phd/shared-types';
 
@@ -38,6 +39,9 @@ export default function CalendarPage() {
   const [dialogStart, setDialogStart] = useState('');
   const [dialogEnd, setDialogEnd] = useState('');
   const [editEvent, setEditEvent] = useState<EventResponseDto | null>(null);
+
+  // 删除确认弹窗
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // 将后端事件转为 FullCalendar 事件格式
   const fcEvents = (events ?? []).map((e) => ({
@@ -92,11 +96,16 @@ export default function CalendarPage() {
   };
 
   const handleDelete = useCallback(() => {
-    if (editEvent && confirm('确定要删除这个事件吗？')) {
+    setConfirmOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (editEvent) {
       deleteMutation.mutate(editEvent.id);
       setDialogOpen(false);
       setEditEvent(null);
     }
+    setConfirmOpen(false);
   }, [editEvent, deleteMutation]);
 
   if (isLoading) {
@@ -203,15 +212,29 @@ export default function CalendarPage() {
 
       {/* 编辑模式下显示删除按钮 */}
       {dialogOpen && editEvent && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-[90]">
           <button
             onClick={handleDelete}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-destructive hover:bg-destructive/90 transition-colors shadow-lg"
+            className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-colors shadow-lg"
+            style={{ background: 'oklch(0.55 0.15 25)' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'oklch(0.6 0.16 25)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'oklch(0.55 0.15 25)'; }}
           >
             删除事件
           </button>
         </div>
       )}
+
+      {/* 删除确认弹窗 */}
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="删除事件"
+        description={`确定要删除「${editEvent?.title ?? ''}」吗？删除后无法恢复。`}
+        confirmText="删除"
+        destructive
+      />
     </div>
   );
 }

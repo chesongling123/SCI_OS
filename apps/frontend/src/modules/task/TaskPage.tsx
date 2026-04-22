@@ -3,6 +3,7 @@ import { CheckSquare, Loader2 } from 'lucide-react';
 import { TaskStatus } from '@phd/shared-types';
 import type { CreateTaskDto, MoveTaskDto, TaskResponseDto } from '@phd/shared-types';
 import { useTasks, useCreateTask, useUpdateTask, useMoveTask, useDeleteTask } from '../../hooks/useTasks';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import TaskBoard from './TaskBoard';
 import TaskDialog from './TaskDialog';
 
@@ -20,6 +21,10 @@ export default function TaskPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogStatus, setDialogStatus] = useState<TaskStatus>(TaskStatus.TODO);
   const [editTask, setEditTask] = useState<TaskResponseDto | null>(null);
+
+  // 删除确认弹窗
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const handleCreate = (status: TaskStatus) => {
     setEditTask(null);
@@ -45,8 +50,14 @@ export default function TaskPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('确定要删除这个任务吗？')) {
-      deleteMutation.mutate(id);
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (pendingDeleteId) {
+      deleteMutation.mutate(pendingDeleteId);
+      setPendingDeleteId(null);
     }
   };
 
@@ -106,6 +117,17 @@ export default function TaskPage() {
         onUpdate={handleUpdateSubmit}
         initialStatus={dialogStatus}
         editTask={editTask}
+      />
+
+      {/* 删除确认弹窗 */}
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => { setConfirmOpen(false); setPendingDeleteId(null); }}
+        onConfirm={handleConfirmDelete}
+        title="删除任务"
+        description="确定要删除这个任务吗？删除后无法恢复。"
+        confirmText="删除"
+        destructive
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { CreateEventDto, EventResponseDto } from '@phd/shared-types';
 
@@ -69,8 +70,8 @@ export default function EventDialog({ open, onClose, onSubmit, initialStart, ini
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div
         className="relative w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto"
@@ -236,7 +237,8 @@ export default function EventDialog({ open, onClose, onSubmit, initialStart, ini
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

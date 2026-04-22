@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from '@phd/shared-types';
 import { TaskStatus } from '@phd/shared-types';
@@ -42,8 +43,8 @@ export default function TaskDialog({ open, onClose, onCreate, onUpdate, initialS
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div
         className="relative w-full max-w-md rounded-2xl p-6"
@@ -157,6 +158,7 @@ export default function TaskDialog({ open, onClose, onCreate, onUpdate, initialS
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
