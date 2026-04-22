@@ -1,0 +1,32 @@
+{
+  "name": "phd-os",
+  "version": "0.0.1",
+  "description": "PhD Workstation —— AI 驱动的博士科研工作台",
+  "private": true,
+  "author": "PhD_OS Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "dev:frontend": "pnpm --filter @phd/frontend dev",
+    "dev:backend": "pnpm --filter @phd/backend start:dev",
+    "build": "pnpm run -r build",
+    "db:migrate": "pnpm --filter @phd/backend db:migrate",
+    "db:generate": "pnpm --filter @phd/backend db:generate",
+    "db:studio": "pnpm --filter @phd/backend db:studio",
+    "db:seed": "pnpm --filter @phd/backend db:seed",
+    "lint": "pnpm run -r lint",
+    "test": "pnpm run -r test",
+    "typecheck": "pnpm run -r typecheck",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}

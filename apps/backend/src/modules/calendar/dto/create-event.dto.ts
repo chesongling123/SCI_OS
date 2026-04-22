@@ -1,0 +1,46 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsBoolean, IsDateString } from 'class-validator';
+
+export class CreateEventDto {
+  @ApiProperty({ description: '事件标题' })
+  @IsString()
+  title: string;
+
+  @ApiProperty({ description: '开始时间（ISO 8601）' })
+  @IsDateString()
+  startAt: string;
+
+  @ApiProperty({ description: '结束时间（ISO 8601）' })
+  @IsDateString()
+  endAt: string;
+
+  @ApiPropertyOptional({ description: '时区', default: 'Asia/Shanghai' })
+  @IsOptional()
+  @IsString()
+  timezone?: string;
+
+  @ApiPropertyOptional({ description: 'iCalendar RRULE 重复规则' })
+  @IsOptional()
+  @IsString()
+  rrule?: string;
+
+  @ApiPropertyOptional({ description: '是否全天事件', default: false })
+  @IsOptional()
+  @IsBoolean()
+  isAllDay?: boolean;
+
+  @ApiPropertyOptional({ description: '地点' })
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @ApiPropertyOptional({ description: '描述' })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({ description: '颜色标签' })
+  @IsOptional()
+  @IsString()
+  color?: string;
+}

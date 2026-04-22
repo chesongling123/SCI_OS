@@ -1,0 +1,494 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* === 液态玻璃设计系统（浅色模式）=== */
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-bg-hover: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-border-highlight: rgba(255, 255, 255, 0.45);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --glass-shadow-strong: 0 12px 48px rgba(0, 0, 0, 0.15);
+    --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+    /* shadcn/ui 基础变量 */
+    --background: 40 20% 95%;
+    --foreground: 30 10% 10%;
+    --card: 40 20% 96%;
+    --card-foreground: 30 10% 10%;
+    --popover: 40 20% 96%;
+    --popover-foreground: 30 10% 10%;
+    --primary: 260 50% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 10% 90%;
+    --secondary-foreground: 30 10% 15%;
+    --muted: 40 10% 90%;
+    --muted-foreground: 30 5% 45%;
+    --accent: 260 50% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 10% 85%;
+    --input: 40 10% 85%;
+    --ring: 260 50% 52%;
+    --radius: 0.75rem;
+
+    /* 背景层 — 有深度的渐变 */
+    --bg-primary: #f5f0eb;
+    --bg-gradient-1: oklch(0.92 0.015 280);
+    --bg-gradient-2: oklch(0.88 0.02 60);
+    --bg-gradient-3: oklch(0.9 0.018 200);
+
+    /* 文字 */
+    --text-primary: oklch(0.18 0.025 60);
+    --text-secondary: oklch(0.42 0.02 60);
+    --text-muted: oklch(0.58 0.015 60);
+    --text-on-glass: oklch(0.25 0.03 60);
+
+    /* === 日历事件颜色系统（与 glass 融合） === */
+    --cal-blue-bg:    oklch(0.55 0.08 260 / 0.20);
+    --cal-red-bg:     oklch(0.55 0.08 25 / 0.18);
+    --cal-green-bg:   oklch(0.55 0.08 145 / 0.18);
+    --cal-yellow-bg:  oklch(0.6 0.07 85 / 0.20);
+    --cal-purple-bg:  oklch(0.55 0.08 300 / 0.18);
+    --cal-pink-bg:    oklch(0.6 0.07 330 / 0.18);
+  }
+
+  [data-theme="dark"] {
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg-hover: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-highlight: rgba(255, 255, 255, 0.25);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --glass-shadow-strong: 0 12px 48px rgba(0, 0, 0, 0.5);
+    --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    --background: 260 10% 6%;
+    --foreground: 40 10% 94%;
+    --card: 260 10% 8%;
+    --card-foreground: 40 10% 94%;
+    --popover: 260 10% 8%;
+    --popover-foreground: 40 10% 94%;
+    --primary: 260 60% 68%;
+    --primary-foreground: 260 10% 6%;
+    --secondary: 260 10% 15%;
+    --secondary-foreground: 40 10% 94%;
+    --muted: 260 10% 15%;
+    --muted-foreground: 40 5% 60%;
+    --accent: 260 60% 68%;
+    --accent-foreground: 260 10% 6%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 260 10% 18%;
+    --input: 260 10% 18%;
+    --ring: 260 60% 68%;
+
+    --bg-primary: oklch(0.08 0.01 280);
+    --bg-gradient-1: oklch(0.1 0.015 280);
+    --bg-gradient-2: oklch(0.12 0.02 260);
+    --bg-gradient-3: oklch(0.09 0.012 300);
+
+    --text-primary: oklch(0.94 0.008 60);
+    --text-secondary: oklch(0.7 0.015 60);
+    --text-muted: oklch(0.5 0.012 60);
+    --text-on-glass: oklch(0.9 0.005 60);
+
+    /* 深色模式：颜色更亮、背景更淡 */
+    --cal-blue-bg:    oklch(0.68 0.07 260 / 0.14);
+    --cal-red-bg:     oklch(0.68 0.07 25 / 0.12);
+    --cal-green-bg:   oklch(0.68 0.07 145 / 0.12);
+    --cal-yellow-bg:  oklch(0.72 0.06 85 / 0.14);
+    --cal-purple-bg:  oklch(0.68 0.07 300 / 0.12);
+    --cal-pink-bg:    oklch(0.72 0.06 330 / 0.12);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 20% 50%, var(--bg-gradient-2) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, var(--bg-gradient-3) 0%, transparent 40%),
+      radial-gradient(ellipse at 50% 80%, var(--bg-gradient-1) 0%, transparent 50%),
+      var(--bg-primary);
+    background-attachment: fixed;
+  }
+}
+
+
+/* ============================================
+   FullCalendar 液态玻璃主题覆盖（增强版）
+   使用更高优先级选择器确保覆盖默认样式
+   ============================================ */
+
+/* 根容器 */
+.fc {
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-list-event-hover-bg-color: var(--glass-bg-hover);
+  --fc-border-color: var(--glass-border);
+  --fc-button-text-color: var(--text-secondary);
+  --fc-button-bg-color: var(--glass-bg);
+  --fc-button-border-color: var(--glass-border);
+  --fc-button-hover-bg-color: var(--glass-bg-hover);
+  --fc-button-hover-border-color: var(--glass-border-highlight);
+  --fc-button-active-bg-color: oklch(0.52 0.18 260 / 0.2);
+  --fc-button-active-border-color: oklch(0.52 0.18 260 / 0.35);
+  --fc-today-bg-color: oklch(0.52 0.18 260 / 0.05);
+  --fc-highlight-color: oklch(0.52 0.18 260 / 0.08);
+  --fc-event-bg-color: transparent;
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: var(--text-primary);
+  --fc-more-link-text-color: var(--text-muted);
+  --fc-event-resizer-thickness: 4px;
+}
+
+/* === 工具栏 === */
+.fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 1.25rem;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+/* 按钮组 */
+.fc .fc-button-group {
+  gap: 4px;
+}
+
+.fc .fc-button {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-secondary) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 10px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  font-weight: 500;
+  font-family: inherit;
+  box-shadow: var(--glass-inset) !important;
+  text-transform: none !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none !important;
+  line-height: 1.5;
+}
+
+.fc .fc-button:hover {
+  background: var(--glass-bg-hover) !important;
+  border-color: var(--glass-border-highlight) !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-1px);
+}
+
+.fc .fc-button:focus {
+  box-shadow: 0 0 0 2px oklch(0.52 0.18 260 / 0.2), var(--glass-inset) !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: oklch(0.52 0.18 260 / 0.22) !important;
+  border-color: oklch(0.52 0.18 260 / 0.4) !important;
+  color: var(--text-primary) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+.fc .fc-button-primary:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed;
+}
+
+/* === 列头（星期几） === */
+.fc .fc-col-header {
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.fc .fc-col-header-cell {
+  background: transparent !important;
+  border-color: transparent transparent var(--glass-border) transparent !important;
+  padding: 10px 0;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  padding: 4px 8px;
+}
+
+/* === 网格线 — 极 subtle === */
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid-section > td,
+.fc .fc-scrollgrid-section > th,
+.fc .fc-theme-standard td,
+.fc .fc-theme-standard th,
+.fc .fc-scrollgrid-section-sticky > * {
+  border-color: var(--glass-border) !important;
+}
+
+.fc .fc-daygrid-day {
+  border-color: var(--glass-border) !important;
+  transition: background-color 0.15s ease;
+}
+
+.fc .fc-daygrid-day:hover {
+  background: var(--glass-bg-hover);
+}
+
+.fc .fc-timegrid-slot,
+.fc .fc-timegrid-axis,
+.fc .fc-timegrid-slot-lane,
+.fc .fc-timegrid-col {
+  border-color: var(--glass-border) !important;
+}
+
+/* === 日期数字 === */
+.fc .fc-daygrid-day-top {
+  display: flex;
+  justify-content: flex-start;
+  padding: 4px;
+}
+
+.fc .fc-daygrid-day-number {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  font-variant-numeric: tabular-nums;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  text-decoration: none !important;
+}
+
+.fc .fc-daygrid-day:hover .fc-daygrid-day-number {
+  background: var(--glass-bg-hover);
+}
+
+/* 非本月日期 */
+.fc .fc-day-other {
+  background: transparent !important;
+}
+
+.fc .fc-day-other .fc-daygrid-day-number {
+  color: var(--text-muted);
+  opacity: 0.4;
+  font-weight: 400;
+}
+
+/* === 今天的高亮 — 微妙的 glow === */
+.fc .fc-day-today {
+  background: oklch(0.52 0.18 260 / 0.04) !important;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: oklch(0.52 0.18 260);
+  font-weight: 700;
+  background: oklch(0.52 0.18 260 / 0.12);
+  box-shadow: 0 0 0 1px oklch(0.52 0.18 260 / 0.2);
+}
+
+/* 周末 */
+.fc .fc-day-sat .fc-daygrid-day-number,
+.fc .fc-day-sun .fc-daygrid-day-number {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* === 事件卡片 — 液态玻璃 === */
+.fc-event,
+.fc-h-event,
+.fc-v-event {
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  padding: 3px 8px !important;
+  margin: 1px 3px !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), var(--glass-inset) !important;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+.fc-event:hover,
+.fc-h-event:hover,
+.fc-v-event:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1), var(--glass-inset) !important;
+  z-index: 10 !important;
+}
+
+.fc-event .fc-event-main {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fc-event .fc-event-main-frame {
+  padding: 0;
+}
+
+.fc-event .fc-event-time {
+  font-size: 10px;
+  opacity: 0.65;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  order: -1;
+}
+
+.fc-event .fc-event-title {
+  font-size: 11px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 全天事件 */
+.fc-event.fc-daygrid-block-event {
+  padding: 4px 8px !important;
+}
+
+.fc-event.fc-daygrid-block-event .fc-event-time {
+  display: none;
+}
+
+/* === 事件颜色系统 — 纯玻璃色块（无边框色条） === */
+.cal-event-blue {
+  background: var(--cal-blue-bg) !important;
+}
+.cal-event-red {
+  background: var(--cal-red-bg) !important;
+}
+.cal-event-green {
+  background: var(--cal-green-bg) !important;
+}
+.cal-event-yellow {
+  background: var(--cal-yellow-bg) !important;
+}
+.cal-event-purple {
+  background: var(--cal-purple-bg) !important;
+}
+.cal-event-pink {
+  background: var(--cal-pink-bg) !important;
+}
+
+/* === 选中时间段 === */
+.fc .fc-highlight {
+  background: oklch(0.52 0.18 260 / 0.08) !important;
+  border-radius: 6px;
+}
+
+/* === now indicator === */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: oklch(0.55 0.15 25) !important;
+  border-width: 2px !important;
+}
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: oklch(0.55 0.15 25) !important;
+  color: oklch(0.55 0.15 25) !important;
+}
+
+/* === more 链接 === */
+.fc .fc-daygrid-more-link {
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin: 1px 3px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.fc .fc-daygrid-more-link:hover {
+  background: var(--glass-bg-hover);
+  color: var(--text-primary);
+}
+
+/* === 全天事件栏 === */
+.fc .fc-daygrid-body-balanced .fc-daygrid-day-events {
+  padding: 2px;
+}
+
+.fc .fc-daygrid-day-events {
+  margin-top: 2px !important;
+}
+
+/* === 周/日视图 === */
+.fc .fc-timegrid-slot-label-cushion {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.fc .fc-timegrid-slot-minor {
+  border-top-style: dashed !important;
+  border-top-color: var(--glass-border) !important;
+}
+
+.fc .fc-timegrid-col.fc-day-today {
+  background: oklch(0.52 0.18 260 / 0.02) !important;
+}
+
+/* === popover === */
+.fc .fc-popover {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(24px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.3) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--glass-shadow-strong) !important;
+  overflow: hidden;
+}
+.fc .fc-popover-header {
+  background: var(--glass-bg-hover) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  padding: 10px 16px;
+}
+.fc .fc-popover-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+}
+.fc .fc-popover-close {
+  color: var(--text-muted);
+  opacity: 1;
+  font-size: 18px;
+  transition: color 0.15s ease;
+}
+.fc .fc-popover-close:hover {
+  color: var(--text-primary);
+}
+
+/* === 月视图事件 dots（如果 dayMaxEvents 触发）=== */
+.fc .fc-daygrid-event-harness {
+  margin-bottom: 1px;
+}
+
+/* === 拖拽时的镜像 === */
+.fc-event.fc-event-dragging {
+  opacity: 0.85 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+

@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: phd-postgres
+    environment:
+      POSTGRES_USER: phd
+      POSTGRES_PASSWORD: phd_dev
+      POSTGRES_DB: phd_os
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U phd -d phd_os"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: phd-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # OpenClaw Gateway —— 黑盒集成
+  # 注意：openclaw/gateway 镜像目前未发布到公开仓库
+  # Phase 1 开发可不启动此服务，Phase 2 通过本地 npm 安装 openclaw 运行
+  # openclaw:
+  #   image: openclaw/gateway:v2026.4.15
+  #   container_name: phd-openclaw
+  #   ports:
+  #     - "18789:18789"
+  #   environment:
+  #     OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-dev-token}
+  #   restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhD Workstation — AI 驱动的博士科研工作台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* === 浅色模式（默认）=== */
+      /* 液态玻璃强调系统 */
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-bg-hover: rgba(255, 255, 255, 0.15);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      --glass-border-highlight: rgba(255, 255, 255, 0.45);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      --glass-shadow-strong: 0 12px 48px rgba(0, 0, 0, 0.15);
+      --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      
+      /* 背景层 — 有深度的渐变 */
+      --bg-primary: #f5f0eb;
+      --bg-gradient-1: oklch(0.92 0.015 280);
+      --bg-gradient-2: oklch(0.88 0.02 60);
+      --bg-gradient-3: oklch(0.9 0.018 200);
+      
+      /* 文字 — 深暖棕黑 */
+      --text-primary: oklch(0.18 0.025 60);
+      --text-secondary: oklch(0.42 0.02 60);
+      --text-muted: oklch(0.58 0.015 60);
+      --text-on-glass: oklch(0.25 0.03 60);
+      
+      /* 强调色 */
+      --accent: oklch(0.52 0.18 260);
+      --accent-dim: oklch(0.52 0.18 260 / 0.15);
+      --accent-hover: oklch(0.45 0.2 260);
+      --accent-glass: oklch(0.52 0.18 260 / 0.2);
+      
+      /* 间距 */
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --space-5: 48px;
+      --space-6: 64px;
+      
+      /* 字体 */
+      --text-xs: 0.8rem;
+      --text-sm: 0.875rem;
+      --text-base: 1rem;
+      --text-lg: 1.25rem;
+      --text-xl: 1.563rem;
+      --text-2xl: 1.953rem;
+      --text-3xl: 2.441rem;
+      
+      /* 动效 */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-fast: 150ms;
+      --duration-normal: 300ms;
+      --duration-slow: 500ms;
+    }
+
+    /* === 深色模式 === */
+    [data-theme="dark"] {
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-bg-hover: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-border-highlight: rgba(255, 255, 255, 0.25);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --glass-shadow-strong: 0 12px 48px rgba(0, 0, 0, 0.5);
+      --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      
+      --bg-primary: oklch(0.08 0.01 280);
+      --bg-gradient-1: oklch(0.1 0.015 280);
+      --bg-gradient-2: oklch(0.12 0.02 260);
+      --bg-gradient-3: oklch(0.09 0.012 300);
+      
+      --text-primary: oklch(0.94 0.008 60);
+      --text-secondary: oklch(0.7 0.015 60);
+      --text-muted: oklch(0.5 0.012 60);
+      --text-on-glass: oklch(0.9 0.005 60);
+      
+      --accent: oklch(0.68 0.15 260);
+      --accent-dim: oklch(0.68 0.15 260 / 0.15);
+      --accent-hover: oklch(0.75 0.17 260);
+      --accent-glass: oklch(0.68 0.15 260 / 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      /* 有深度的渐变背景 */
+      background: 
+        radial-gradient(ellipse at 20% 50%, var(--bg-gradient-2) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, var(--bg-gradient-3) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 80%, var(--bg-gradient-1) 0%, transparent 50%),
+        var(--bg-primary);
+      background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 var(--space-3);
+    }
+
+    /* ========== 导航栏 — 完全液态玻璃 ========== */
+    .nav {
+      padding: var(--space-2) 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      /* 完全透明 + 模糊 */
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border-bottom: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      color: var(--text-primary);
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent), oklch(0.6 0.12 290));
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: var(--text-sm);
+      box-shadow: 0 2px 8px var(--accent-dim);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: var(--space-2);
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      padding: var(--space-1) var(--space-2);
+      border-radius: 10px;
+      transition: all var(--duration-fast) var(--ease-out);
+      /* 玻璃按钮效果 */
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border);
+      backdrop-filter: blur(8px);
+    }
+
+    /* 主题切换按钮 */
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: var(--text-base);
+      transition: all var(--duration-fast) var(--ease-out);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--glass-inset);
+      margin-left: var(--space-2);
+    }
+
+    .theme-toggle:hover {
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border-highlight);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .theme-toggle:focus-visible {
+      box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent);
+    }
+
+    /* ========== 英雄区域 ========== */
+    .hero {
+      padding: var(--space-6) 0 var(--space-5);
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      /* 玻璃药丸 */
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(1.2);
+      -webkit-backdrop-filter: blur(16px) saturate(1.2);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-highlight);
+      border-radius: 100px;
+      font-size: var(--text-xs);
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: var(--space-3);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .hero h1 {
+      font-size: var(--text-3xl);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: var(--space-2);
+      color: var(--text-primary);
+    }
+
+    .hero h1 em {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 400;
+    }
+
+    .hero-subtitle {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 65ch;
+      margin: 0 auto var(--space-3);
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: var(--space-2);
+      justify-content: center;
+      margin-bottom: var(--space-5);
+    }
+
+    /* ========== 按钮 — 玻璃质感 ========== */
+    .btn {
+      padding: 12px 24px;
+      border-radius: 14px;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      border: none;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid transparent;
+      pointer-events: none;
+    }
+
+    .btn:focus-visible {
+      box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent);
+    }
+
+    /* 主按钮 — 强调色玻璃 */
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 
+        0 4px 16px var(--accent-dim),
+        var(--glass-inset);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 
+        0 8px 24px var(--accent-dim),
+        var(--glass-inset);
+    }
+
+    /* 次要按钮 — 纯玻璃 */
+    .btn-secondary {
+      background: var(--glass-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: var(--glass-inset), var(--glass-shadow);
+    }
+
+    .btn-secondary:hover {
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border-highlight);
+      transform: translateY(-2px);
+      box-shadow: var(--glass-inset), var(--glass-shadow-strong);
+    }
+
+    /* ========== 功能卡片 — 重度液态玻璃 ========== */
+    .features {
+      padding: var(--space-5) 0;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: var(--space-4);
+    }
+
+    .section-header h2 {
+      font-size: var(--text-xl);
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+      color: var(--text-primary);
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: var(--text-base);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-2);
+    }
+
+    .card {
+      /* 液态玻璃卡片 */
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(1.3);
+      -webkit-backdrop-filter: blur(20px) saturate(1.3);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-highlight);
+      border-radius: 20px;
+      padding: var(--space-3);
+      transition: all var(--duration-normal) var(--ease-out);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--glass-inset), var(--glass-shadow);
+    }
+
+    /* 卡片内高光边缘 */
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--glass-border-highlight), transparent);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border-highlight);
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: var(--glass-inset), var(--glass-shadow-strong);
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--accent-glass);
+      backdrop-filter: blur(8px);
+      display: grid;
+      place-items: center;
+      font-size: var(--text-xl);
+      margin-bottom: var(--space-2);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-inset);
+    }
+
+    .card h3 {
+      font-size: var(--text-base);
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .card p {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin-top: var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .card-meta .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    /* ========== 仪表盘 — 液态玻璃窗口 ========== */
+    .preview {
+      padding: var(--space-5) 0;
+    }
+
+    .preview-frame {
+      /* 玻璃窗口 */
+      background: var(--glass-bg);
+      backdrop-filter: blur(30px) saturate(1.4);
+      -webkit-backdrop-filter: blur(30px) saturate(1.4);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-highlight);
+      border-radius: 24px;
+      padding: var(--space-3);
+      position: relative;
+      box-shadow: var(--glass-inset), var(--glass-shadow-strong);
+      overflow: hidden;
+    }
+
+    .preview-frame::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--glass-border-highlight), transparent);
+      pointer-events: none;
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin-bottom: var(--space-2);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .preview-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: var(--space-2);
+    }
+
+    .preview-widget {
+      /* 内部玻璃面板 */
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px) saturate(1.2);
+      -webkit-backdrop-filter: blur(16px) saturate(1.2);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: var(--space-2);
+      min-height: 160px;
+      box-shadow: var(--glass-inset);
+    }
+
+    .preview-widget h4 {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-2);
+    }
+
+    .preview-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 8px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      font-size: var(--text-sm);
+      transition: background var(--duration-fast) var(--ease-out);
+    }
+
+    .preview-item:hover {
+      background: var(--glass-bg-hover);
+    }
+
+    .preview-time {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+    }
+
+    /* ========== CTA — 玻璃面板 ========== */
+    .cta {
+      padding: var(--space-6) 0;
+      text-align: center;
+      position: relative;
+    }
+
+    .cta-inner {
+      /* 大型玻璃面板 */
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(1.3);
+      -webkit-backdrop-filter: blur(24px) saturate(1.3);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-highlight);
+      border-radius: 24px;
+      padding: var(--space-5) var(--space-4);
+      box-shadow: var(--glass-inset), var(--glass-shadow-strong);
+    }
+
+    .cta h2 {
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .cta p {
+      color: var(--text-secondary);
+      margin-bottom: var(--space-3);
+      max-width: 60ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ========== 页脚 ========== */
+    .footer {
+      padding: var(--space-4) 0;
+      margin-top: var(--space-4);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: var(--text-sm);
+    }
+
+    /* ========== 响应式 ========== */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: var(--text-2xl);
+      }
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+      .nav-links {
+        display: none;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 微光动画装饰 */
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 导航 — 完全液态玻璃 -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="logo">
+        <div class="logo-icon">◈</div>
+        PhD Workstation
+      </div>
+      <ul class="nav-links">
+        <li><a href="#">功能模块</a></li>
+        <li><a href="#">技术架构</a></li>
+        <li><a href="#">开源社区</a></li>
+        <li><a href="#">文档</a></li>
+      </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="切换主题">🌙</button>
+    </div>
+  </nav>
+
+  <!-- 英雄区域 -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">本地优先 · AI 原生 · 数据主权</div>
+      <h1>
+        为深度知识工作者<br>打造的 <em>AI 驱动</em> 科研工作台
+      </h1>
+      <p class="hero-subtitle">
+        统一文献管理、日程规划、实验记录与论文写作。你的数据留在本地，AI 能力触手可及。
+        基于 OpenClaw 开源架构，支持 200+ MCP 工具集成。
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary">开始部署工作台</button>
+        <button class="btn btn-secondary">阅读技术文档</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 功能模块 — 液态玻璃卡片 -->
+  <section class="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>六大核心模块</h2>
+        <p>覆盖科研工作者从文献阅读到论文产出的完整工作流</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">📚</div>
+          <h3>AI 文献管理</h3>
+          <p>通过 Zotero MCP Server 接入，AI 自动提取文献摘要、生成批注、推荐相关论文。</p>
+          <div class="card-meta">
+            <span class="dot"></span>
+            <span>本地 SQLite + Zotero 7 集成</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📅</div>
+          <h3>智能日程规划</h3>
+          <p>基于番茄钟历史数据识别高效时段，AI 主动建议最佳任务排程。</p>
+          <div class="card-meta">
+            <span class="dot"></span>
+            <span>FullCalendar + 多源同步</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">✅</div>
+          <h3>GTD 任务看板</h3>
+          <p>项目-任务-子任务三级结构，标注能量等级与预计耗时，支持深度工作模式。</p>
+          <div class="card-meta">
+            <span class="dot"></span>
+            <span>@dnd-kit 拖拽排序</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🍅</div>
+          <h3>番茄钟分析</h3>
+          <p>不仅是计时器，更是行为数据传感器。生成 52 周专注热力图，揭示工作模式。</p>
+          <div class="card-meta">
+            <span class="dot"></span>
+            <span>Web Audio API 白噪声</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📝</div>
+          <h3>RAG 笔记系统</h3>
+          <p>三层架构：碎片捕获 → 提炼加工 → 双向链接。自动构建向量知识库。</p>
+          <div class="card-meta">
+            <span class="dot"></span>
+            <span>TipTap 2.x + pgvector</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🤖</div>
+          <h3>OpenClaw AI 助手</h3>
+          <p>黑盒集成 OpenClaw Gateway，通过飞书/iMessage 随时与 AI 助手对话。</p>
+          <div class="card-meta">
+            <span class="dot"></span>
+            <span>WebSocket + MCP 协议</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 仪表盘 — 玻璃窗口 -->
+  <section class="preview">
+    <div class="container">
+      <div class="section-header">
+        <h2>工作台预览</h2>
+        <p>液态玻璃界面，为深度科研场景优化</p>
+      </div>
+      <div class="preview-frame">
+        <div class="preview-header">
+          <div class="preview-dot" style="background: oklch(0.6 0.1 25);"></div>
+          <div class="preview-dot" style="background: oklch(0.7 0.1 85);"></div>
+          <div class="preview-dot" style="background: var(--success);"></div>
+        </div>
+        <div class="preview-grid">
+          <div class="preview-widget">
+            <h4>今日日程</h4>
+            <div class="preview-item">
+              <span class="preview-time">09:00</span>
+              <span>组会汇报 — DiffAct 实验进展</span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-time">14:00</span>
+              <span>文献阅读 — Transformer 综述</span>
+            </div>
+            <div class="preview-item">
+              <span class="preview-time">16:30</span>
+              <span>番茄钟 — 论文第三章写作</span>
+            </div>
+          </div>
+          <div class="preview-widget">
+            <h4>本周专注统计</h4>
+            <div style="display: flex; gap: 4px; align-items: end; height: 100px; margin-top: 16px;">
+              <div style="flex: 1; background: var(--accent-glass); backdrop-filter: blur(4px); border-radius: 6px; height: 40%;"></div>
+              <div style="flex: 1; background: var(--accent-glass); backdrop-filter: blur(4px); border-radius: 6px; height: 70%;"></div>
+              <div style="flex: 1; background: var(--accent); backdrop-filter: blur(4px); border-radius: 6px; height: 100%;"></div>
+              <div style="flex: 1; background: var(--accent-glass); backdrop-filter: blur(4px); border-radius: 6px; height: 55%;"></div>
+              <div style="flex: 1; background: var(--accent-glass); backdrop-filter: blur(4px); border-radius: 6px; height: 80%;"></div>
+              <div style="flex: 1; background: var(--glass-bg); backdrop-filter: blur(4px); border-radius: 6px; height: 30%;"></div>
+              <div style="flex: 1; background: var(--glass-bg); backdrop-filter: blur(4px); border-radius: 6px; height: 20%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA — 玻璃面板 -->
+  <section class="cta">
+    <div class="container">
+      <div class="cta-inner">
+        <h2>你的科研数据，<em style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; color: var(--accent);">永远属于你</em></h2>
+        <p>本地 SQLite 作为真相源，云端仅存储同步元数据。即使云端被攻破，核心数据留在你的设备上。</p>
+        <button class="btn btn-primary">查看 GitHub 源码</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <p>基于 OpenClaw 开源架构 · MIT 许可证 · 本地优先设计</p>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      const toggle = document.getElementById('themeToggle');
+      const root = document.documentElement;
+      const stored = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      let isDark = stored ? stored === 'dark' : systemDark;
+      
+      function applyTheme(dark) {
+        if (dark) {
+          root.setAttribute('data-theme', 'dark');
+          toggle.textContent = '☀️';
+        } else {
+          root.removeAttribute('data-theme');
+          toggle.textContent = '🌙';
+        }
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+      }
+      
+      applyTheme(isDark);
+      
+      toggle.addEventListener('click', () => {
+        isDark = !isDark;
+        applyTheme(isDark);
+      });
+      
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (!localStorage.getItem('theme')) {
+          isDark = e.matches;
+          applyTheme(isDark);
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>

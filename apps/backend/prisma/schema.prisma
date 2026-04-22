@@ -1,0 +1,131 @@
+// ============================================
+// PhD_OS 数据库 Schema —— Phase 1（日程/任务/番茄钟）
+// 本地优先架构：PostgreSQL（开发/云端）+ SQLite（本地生产）
+// 所有表遵循：CUID 主键 · UTC 时间戳 · 软删除 · JSONB 可变结构
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 用户模块（Phase 1 最小实现，Phase 2 扩展 OAuth）
+// ============================================
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // 关联
+  events           Event[]
+  tasks            Task[]
+  pomodoroSessions PomodoroSession[]
+
+  @@map("users")
+}
+
+// ============================================
+// 日程模块
+// ============================================
+model Event {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  startAt   DateTime  @db.Timestamptz(3)
+  endAt     DateTime  @db.Timestamptz(3)
+  timezone  String    @default("Asia/Shanghai")
+  rrule     String?   // iCalendar RRULE 格式重复规则
+  isAllDay  Boolean   @default(false)
+  location  String?
+  description String?
+  color     String?   // 事件颜色标签
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // 软删除
+
+  // 关联
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, startAt])
+  @@index([deletedAt])
+  @@map("events")
+}
+
+// ============================================
+// 任务模块（GTD 三级结构）
+// ============================================
+model Task {
+  id            String     @id @default(cuid())
+  userId        String
+  title         String
+  status        TaskStatus @default(TODO)
+  priority      Int        @default(4) // P1=1, P2=2, P3=3, P4=4
+  sortOrder     Float      @default(0) // 浮点数拖拽排序
+  parentId      String?    // 自引用：子任务
+  pomodoroCount Int        @default(0) // 已完成番茄数
+  dueDate       DateTime?  @db.Timestamptz(3)
+  energyLevel   Int?       // 1-5 能量等级
+  estimatedMinutes Int?    // 预计耗时（分钟）
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?  // 软删除
+
+  // 关联
+  user User  @relation(fields: [userId], references: [id])
+  self Task? @relation("TaskParent", fields: [parentId], references: [id])
+  children Task[] @relation("TaskParent")
+  pomodoroSessions PomodoroSession[]
+
+  @@index([userId, status])
+  @@index([userId, sortOrder])
+  @@index([deletedAt])
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+// ============================================
+// 番茄钟模块（行为数据传感器）
+// ============================================
+model PomodoroSession {
+  id                String    @id @default(cuid())
+  userId            String
+  taskId            String?   // 关联任务（可选）
+  duration          Int       // 实际专注秒数
+  plannedDuration   Int       // 计划时长（默认 1500 = 25min）
+  interruptions     Int       @default(0) // 中断次数
+  interruptionType  String?   // JSON 数组：[{"type":"INTERNAL","reason":"..."}, ...]
+  startedAt         DateTime  @db.Timestamptz(3)
+  endedAt           DateTime? @db.Timestamptz(3)
+  notes             String?   // 会话备注
+  createdAt         DateTime  @default(now())
+
+  // 关联
+  user User  @relation(fields: [userId], references: [id])
+  task Task? @relation(fields: [taskId], references: [id])
+
+  @@index([userId, startedAt])
+  @@index([taskId])
+  @@map("pomodoro_sessions")
+}
+
+// ============================================
+// Phase 2 预留（笔记/文献/AI 对话）
+// ============================================
+// model Note { ... }
+// model Reference { ... }
+// model AiConversation { ... }
+// model AiMessage { ... }
