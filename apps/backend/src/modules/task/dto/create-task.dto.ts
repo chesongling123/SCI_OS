@@ -28,4 +28,9 @@ export class CreateTaskDto {
   @IsOptional()
   @IsNumber()
   pomodoroCount?: number;
+
+  @ApiPropertyOptional({ description: '关联文献 ID' })
+  @IsOptional()
+  @IsString()
+  referenceId?: string;
 }

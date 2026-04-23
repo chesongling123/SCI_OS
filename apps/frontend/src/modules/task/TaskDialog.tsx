@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, BookOpen } from 'lucide-react';
 import type { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from '@phd/shared-types';
 import { TaskStatus } from '@phd/shared-types';
+import { useReferences } from '../../hooks/useReferences';
 
 interface TaskDialogProps {
   open: boolean;
@@ -11,34 +12,55 @@ interface TaskDialogProps {
   onUpdate?: (id: string, dto: UpdateTaskDto) => void;
   initialStatus?: TaskStatus;
   editTask?: TaskResponseDto | null;
+  prefillReferenceId?: string;
 }
 
-export default function TaskDialog({ open, onClose, onCreate, onUpdate, initialStatus = TaskStatus.TODO, editTask }: TaskDialogProps) {
+export default function TaskDialog({ open, onClose, onCreate, onUpdate, initialStatus = TaskStatus.TODO, editTask, prefillReferenceId = '' }: TaskDialogProps) {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState(4);
+  const [referenceId, setReferenceId] = useState<string>('');
+  const { data: refsData } = useReferences({ limit: 100 });
+  const references = refsData?.data ?? [];
 
   // open 或 editTask 变化时同步表单
+  const hasPrefilledRef = useRef(false);
   useEffect(() => {
     if (open) {
       if (editTask) {
         setTitle(editTask.title);
         setPriority(editTask.priority);
+        setReferenceId(editTask.referenceId ?? '');
+        hasPrefilledRef.current = false;
       } else {
-        setTitle('');
+        setTitle(prefillReferenceId && !hasPrefilledRef.current
+          ? `精读：${references.find(r => r.id === prefillReferenceId)?.title ?? ''}`
+          : (hasPrefilledRef.current ? title : ''));
         setPriority(4);
+        if (prefillReferenceId && !hasPrefilledRef.current) {
+          setReferenceId(prefillReferenceId);
+          hasPrefilledRef.current = true;
+        } else if (!prefillReferenceId) {
+          setReferenceId('');
+          hasPrefilledRef.current = false;
+        }
       }
     }
-  }, [open, editTask]);
+  }, [open, editTask, prefillReferenceId]);
 
   if (!open) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+    const dto: CreateTaskDto | UpdateTaskDto = {
+      title: title.trim(),
+      priority,
+      ...(referenceId ? { referenceId } : {}),
+    };
     if (editTask && onUpdate) {
-      onUpdate(editTask.id, { title: title.trim(), priority });
+      onUpdate(editTask.id, dto as UpdateTaskDto);
     } else {
-      onCreate({ title: title.trim(), status: initialStatus, priority });
+      onCreate({ ...dto, status: initialStatus } as CreateTaskDto);
     }
     onClose();
   };
@@ -115,6 +137,33 @@ export default function TaskDialog({ open, onClose, onCreate, onUpdate, initialS
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>
+              <span className="inline-flex items-center gap-1">
+                <BookOpen className="w-3.5 h-3.5" />
+                关联文献（可选）
+              </span>
+            </label>
+            <select
+              value={referenceId}
+              onChange={(e) => setReferenceId(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl text-sm outline-none transition-colors"
+              style={{
+                background: 'var(--glass-bg)',
+                border: '1px solid var(--glass-border)',
+                color: 'var(--text-primary)',
+                boxShadow: 'var(--glass-inset)',
+              }}
+            >
+              <option value="">不关联文献</option>
+              {references.map((ref) => (
+                <option key={ref.id} value={ref.id}>
+                  {ref.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex gap-2 pt-2">

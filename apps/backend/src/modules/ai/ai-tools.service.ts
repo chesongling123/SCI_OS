@@ -344,6 +344,8 @@ export class AiToolsService {
           return await this.searchReferences(userId, input);
         case 'get_reference_detail':
           return await this.getReferenceDetail(userId, input);
+        case 'create_task':
+          return await this.createTask(userId, input);
         case 'create_reference':
           return await this.createReference(userId, input);
         default:
@@ -1195,6 +1197,18 @@ export class AiToolsService {
             createdAt: true,
           },
         },
+        tasks: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            pomodoroCount: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -1229,6 +1243,51 @@ export class AiToolsService {
         ...n,
         createdAt: n.createdAt.toISOString(),
       })),
+      tasks: ref.tasks.map((t) => ({
+        ...t,
+        createdAt: t.createdAt.toISOString(),
+      })),
+    });
+  }
+
+  private async createTask(userId: string, input: Record<string, unknown>): Promise<string> {
+    const title = String(input.title ?? '').trim();
+    const status = String(input.status ?? 'TODO') as TaskStatus;
+    const priority = Number(input.priority ?? 3);
+    const referenceId = input.referenceId ? String(input.referenceId) : undefined;
+
+    if (!title) {
+      return JSON.stringify({ error: '任务标题不能为空' });
+    }
+
+    const lastTask = await this.prisma.task.findFirst({
+      where: { status, deletedAt: null },
+      orderBy: { sortOrder: 'desc' },
+    });
+    const sortOrder = (lastTask?.sortOrder ?? -1) + 1;
+
+    const task = await this.prisma.task.create({
+      data: {
+        userId,
+        title,
+        status,
+        priority,
+        sortOrder,
+        referenceId: referenceId ?? null,
+      },
+      include: {
+        reference: { select: { id: true, title: true } },
+      },
+    });
+
+    return JSON.stringify({
+      success: true,
+      id: task.id,
+      title: task.title,
+      reference: task.reference,
+      message: referenceId
+        ? `任务「${task.title}」已创建，关联文献「${task.reference?.title ?? ''}」`
+        : `任务「${task.title}」已创建`,
     });
   }
 

@@ -73,6 +73,18 @@ export class ReferenceService {
           orderBy: { pageNumber: 'asc' },
         },
         folder: true,
+        tasks: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            pomodoroCount: true,
+            createdAt: true,
+          },
+        },
       },
     });
 

@@ -7,15 +7,36 @@ import { TaskStatus } from '@phd/shared-types';
 export class TaskService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(userId: string, status?: TaskStatus) {
+  async findAll(userId: string, status?: TaskStatus, referenceId?: string) {
     return this.prisma.task.findMany({
       where: {
         userId,
         deletedAt: null,
         ...(status ? { status } : {}),
+        ...(referenceId ? { referenceId } : {}),
       },
       orderBy: [{ status: 'asc' }, { sortOrder: 'asc' }],
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
+      },
     });
+  }
+
+  async findOne(userId: string, id: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id, userId, deletedAt: null },
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
+      },
+    });
+    if (!task) {
+      throw new NotFoundException(`任务 ${id} 不存在或已被删除`);
+    }
+    return task;
   }
 
   async create(userId: string, dto: CreateTaskDto) {
@@ -33,8 +54,14 @@ export class TaskService {
         priority: dto.priority ?? 4,
         sortOrder,
         pomodoroCount: dto.pomodoroCount ?? 0,
+        referenceId: dto.referenceId ?? null,
         userId,
       } as any,
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
+      },
     });
   }
 
@@ -49,6 +76,12 @@ export class TaskService {
         ...(dto.priority !== undefined && { priority: dto.priority }),
         ...(dto.parentId !== undefined && { parentId: dto.parentId }),
         ...(dto.pomodoroCount !== undefined && { pomodoroCount: dto.pomodoroCount }),
+        ...(dto.referenceId !== undefined && { referenceId: dto.referenceId ?? null }),
+      },
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
       },
     });
   }
@@ -62,6 +95,11 @@ export class TaskService {
         status: dto.status,
         sortOrder: dto.sortOrder,
       },
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
+      },
     });
   }
 
@@ -71,6 +109,11 @@ export class TaskService {
     return this.prisma.task.update({
       where: { id },
       data: { deletedAt: new Date() },
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
+      },
     });
   }
 

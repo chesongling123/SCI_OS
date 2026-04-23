@@ -52,6 +52,7 @@ export interface CreateTaskDto {
   sortOrder?: number;
   parentId?: string | null;
   pomodoroCount?: number;
+  referenceId?: string; // 关联文献 ID
 }
 
 export interface UpdateTaskDto {
@@ -61,6 +62,7 @@ export interface UpdateTaskDto {
   sortOrder?: number;
   parentId?: string | null;
   pomodoroCount?: number;
+  referenceId?: string; // 关联文献 ID
 }
 
 export interface TaskResponseDto {
@@ -71,6 +73,8 @@ export interface TaskResponseDto {
   sortOrder: number;
   parentId: string | null;
   pomodoroCount: number;
+  referenceId: string | null;
+  reference?: { id: string; title: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -315,6 +319,14 @@ export interface ReferenceResponseDto {
   readCount: number;
   totalReadTime: number;
   lastReadAt: string | null;
+  tasks?: Array<{
+    id: string;
+    title: string;
+    status: string;
+    priority: number;
+    pomodoroCount: number;
+    createdAt: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }

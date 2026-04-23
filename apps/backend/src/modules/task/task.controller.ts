@@ -17,9 +17,22 @@ export class TaskController {
   @Get()
   @ApiOperation({ summary: '获取任务列表' })
   @ApiQuery({ name: 'status', required: false, enum: TaskStatus, description: '按状态过滤' })
+  @ApiQuery({ name: 'referenceId', required: false, description: '按关联文献 ID 过滤' })
   @ApiResponse({ status: 200, description: '返回任务列表' })
-  findAll(@Request() req: { user: { id: string } }, @Query('status') status?: TaskStatus) {
-    return this.taskService.findAll(req.user.id, status);
+  findAll(
+    @Request() req: { user: { id: string } },
+    @Query('status') status?: TaskStatus,
+    @Query('referenceId') referenceId?: string,
+  ) {
+    return this.taskService.findAll(req.user.id, status, referenceId);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: '获取任务详情' })
+  @ApiResponse({ status: 200, description: '返回任务详情' })
+  @ApiResponse({ status: 404, description: '任务不存在' })
+  findOne(@Request() req: { user: { id: string } }, @Param('id') id: string) {
+    return this.taskService.findOne(req.user.id, id);
   }
 
   @Post()

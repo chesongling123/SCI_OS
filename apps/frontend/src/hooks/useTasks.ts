@@ -6,10 +6,13 @@ import { authHeaders } from '../lib/api';
 const API_BASE = '/api/v1/tasks';
 
 // 获取任务列表
-export function useTasks(status?: TaskStatus) {
-  const params = status ? `?status=${status}` : '';
+export function useTasks(status?: TaskStatus, referenceId?: string) {
+  const searchParams = new URLSearchParams();
+  if (status) searchParams.set('status', status);
+  if (referenceId) searchParams.set('referenceId', referenceId);
+  const params = searchParams.toString() ? `?${searchParams.toString()}` : '';
   return useQuery<TaskResponseDto[]>({
-    queryKey: ['tasks', status],
+    queryKey: ['tasks', status, referenceId],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}${params}`, { headers: authHeaders() });
       if (!res.ok) throw new Error('获取任务列表失败');

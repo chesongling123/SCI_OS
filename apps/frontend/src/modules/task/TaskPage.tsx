@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckSquare, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { TaskStatus } from '@phd/shared-types';
 import type { CreateTaskDto, MoveTaskDto, TaskResponseDto } from '@phd/shared-types';
 import { useTasks, useCreateTask, useUpdateTask, useMoveTask, useDeleteTask } from '../../hooks/useTasks';
@@ -12,6 +13,7 @@ import TaskDialog from './TaskDialog';
  * 基于 @dnd-kit 的三列拖拽看板：待办 / 进行中 / 已完成
  */
 export default function TaskPage() {
+  const location = useLocation();
   const { data: tasks, isLoading, error } = useTasks();
   const createMutation = useCreateTask();
   const updateMutation = useUpdateTask();
@@ -21,14 +23,29 @@ export default function TaskPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogStatus, setDialogStatus] = useState<TaskStatus>(TaskStatus.TODO);
   const [editTask, setEditTask] = useState<TaskResponseDto | null>(null);
+  const [prefillReferenceId, setPrefillReferenceId] = useState<string>('');
 
   // 删除确认弹窗
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
+  // 接收从文献页跳转过来的预填信息
+  useEffect(() => {
+    const state = location.state as { prefillReferenceId?: string; prefillTitle?: string } | null;
+    if (state?.prefillReferenceId) {
+      setPrefillReferenceId(state.prefillReferenceId);
+      setEditTask(null);
+      setDialogStatus(TaskStatus.TODO);
+      setDialogOpen(true);
+      // 清空 location state，避免刷新后重复触发
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   const handleCreate = (status: TaskStatus) => {
     setEditTask(null);
     setDialogStatus(status);
+    setPrefillReferenceId('');
     setDialogOpen(true);
   };
 

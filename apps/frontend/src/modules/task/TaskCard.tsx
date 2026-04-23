@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Trash2, FileText } from 'lucide-react';
 import type { TaskResponseDto } from '@phd/shared-types';
 
 interface TaskCardProps {
@@ -74,7 +74,7 @@ export default function TaskCard({ task, onDelete, onEdit }: TaskCardProps) {
           <p className="text-sm font-medium leading-snug break-words" style={{ color: 'var(--text-primary)' }}>
             {task.title}
           </p>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span
               className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
               style={{
@@ -87,6 +87,20 @@ export default function TaskCard({ task, onDelete, onEdit }: TaskCardProps) {
             {task.pomodoroCount > 0 && (
               <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
                 🍅 × {task.pomodoroCount}
+              </span>
+            )}
+            {task.reference && (
+              <span
+                className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md"
+                style={{
+                  color: 'var(--text-muted)',
+                  background: 'var(--glass-bg-hover)',
+                  border: '1px solid var(--glass-border)',
+                }}
+                title={task.reference.title}
+              >
+                <FileText className="w-3 h-3" />
+                <span className="max-w-[120px] truncate">{task.reference.title}</span>
               </span>
             )}
           </div>

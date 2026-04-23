@@ -2,12 +2,14 @@ import { useState, useRef } from 'react';
 import {
   BookOpen, Search, Upload, Loader2, Trash2,
   FileText, Star, Tag, Calendar, User, X, ExternalLink,
+  CheckCircle2, Circle, Clock, ArrowRight,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ReadingStatus } from '@phd/shared-types';
 import type { ReferenceResponseDto } from '@phd/shared-types';
 import {
   useReferences,
+  useReference,
   useUpdateReadingStatus,
   useDeleteReference,
   useUploadPdf,
@@ -416,6 +418,16 @@ function ReferenceDetailDialog({
   onClose: () => void;
 }) {
   const statusInfo = STATUS_LABELS[ref.readingStatus] ?? STATUS_LABELS.UNREAD;
+  const navigate = useNavigate();
+  const { data: fullRef } = useReference(ref.id);
+  const linkedTasks = fullRef?.tasks ?? [];
+
+  const handleCreateTask = () => {
+    onClose();
+    navigate('/tasks', {
+      state: { prefillReferenceId: ref.id, prefillTitle: `精读：${ref.title}` },
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }}>
@@ -541,6 +553,54 @@ function ReferenceDetailDialog({
             ))}
           </div>
         )}
+
+        {/* 关联任务 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">关联任务</h3>
+            <button
+              onClick={handleCreateTask}
+              className="text-xs px-2 py-1 rounded-md transition-all"
+              style={{
+                background: 'var(--glass-bg-hover)',
+                border: '1px solid var(--glass-border)',
+                color: 'var(--text-muted)',
+              }}
+            >
+              + 创建精读任务
+            </button>
+          </div>
+          {linkedTasks.length === 0 ? (
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>暂无关联任务</p>
+          ) : (
+            <div className="space-y-1.5">
+              {linkedTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                  style={{
+                    background: 'var(--glass-bg-hover)',
+                    border: '1px solid var(--glass-border)',
+                  }}
+                >
+                  {task.status === 'DONE' ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                  ) : task.status === 'IN_PROGRESS' ? (
+                    <Clock className="w-3.5 h-3.5 text-blue-500" />
+                  ) : (
+                    <Circle className="w-3.5 h-3.5 text-slate-400" />
+                  )}
+                  <span className="flex-1 truncate">{task.title}</span>
+                  {task.pomodoroCount > 0 && (
+                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                      🍅 × {task.pomodoroCount}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {ref.filePath && (
           <div className="pt-2">
