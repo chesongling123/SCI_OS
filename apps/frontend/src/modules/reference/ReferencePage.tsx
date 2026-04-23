@@ -2,10 +2,11 @@ import { useState, useRef } from 'react';
 import {
   BookOpen, Search, Upload, Loader2, Trash2,
   FileText, Star, Tag, Calendar, User, X, ExternalLink,
-  CheckCircle2, Circle, Clock, ArrowRight,
+  CheckCircle2, Circle, Clock, Copy, Check,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ReadingStatus } from '@phd/shared-types';
+import { useQueryClient } from '@tanstack/react-query';
+// import { ReadingStatus } from '@phd/shared-types';
 import type { ReferenceResponseDto } from '@phd/shared-types';
 import {
   useReferences,
@@ -18,6 +19,7 @@ import {
 } from '../../hooks/useReferences';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import ReferenceFolderTree from './components/ReferenceFolderTree';
+import { authHeaders } from '../../lib/api';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   UNREAD: { label: '待读', color: '#94a3b8' },
@@ -42,13 +44,14 @@ const PRIORITY_LABELS: Record<number, string> = {
  */
 export default function ReferencePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // 筛选与搜索状态
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [folderFilter, setFolderFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // 弹窗状态
   const [detailOpen, setDetailOpen] = useState(false);
@@ -118,6 +121,37 @@ export default function ReferencePage() {
     setDetailOpen(true);
   };
 
+  // DOI 导入弹窗
+  const [doiDialogOpen, setDoiDialogOpen] = useState(false);
+  const [doiInput, setDoiInput] = useState('');
+  const [doiImporting, setDoiImporting] = useState(false);
+  const [doiPreview, setDoiPreview] = useState<ReferenceResponseDto | null>(null);
+
+  const handleImportDoi = async () => {
+    if (!doiInput.trim()) return;
+    setDoiImporting(true);
+    try {
+      const res = await fetch('/api/v1/references/import-doi', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ doi: doiInput.trim() }),
+      });
+      if (res.ok) {
+        const ref = await res.json();
+        setDoiPreview(ref);
+        // 刷新列表
+        queryClient.invalidateQueries({ queryKey: ['references'] });
+      } else {
+        const err = await res.text();
+        alert(`导入失败: ${err.slice(0, 200)}`);
+      }
+    } catch (err: any) {
+      alert(`导入失败: ${err.message}`);
+    } finally {
+      setDoiImporting(false);
+    }
+  };
+
   // 文件上传
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -148,6 +182,18 @@ export default function ReferencePage() {
             <span className="text-sm text-muted-foreground">{references.length} 篇</span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDoiDialogOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: 'var(--glass-bg-hover)',
+                border: '1px solid var(--glass-border)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              <Search className="w-4 h-4" />
+              导入 DOI
+            </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadMutation.isPending}
@@ -260,11 +306,98 @@ export default function ReferencePage() {
       {/* 删除确认 */}
       <ConfirmDialog
         open={confirmOpen}
-        onOpenChange={setConfirmOpen}
+        onClose={() => setConfirmOpen(false)}
         title="确认删除"
         description="删除后文献将进入回收站，可随时恢复。"
         onConfirm={handleConfirmDelete}
       />
+
+      {/* DOI 导入弹窗 */}
+      {doiDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }}>
+          <div
+            className="w-full max-w-md rounded-2xl p-6 space-y-4"
+            style={{
+              background: 'var(--glass-bg)',
+              backdropFilter: 'blur(24px) saturate(1.4)',
+              border: '1px solid var(--glass-border)',
+              boxShadow: 'var(--glass-shadow)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">通过 DOI 导入文献</h2>
+              <button onClick={() => { setDoiDialogOpen(false); setDoiInput(''); setDoiPreview(null); }}>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {!doiPreview ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>DOI</label>
+                  <input
+                    type="text"
+                    value={doiInput}
+                    onChange={(e) => setDoiInput(e.target.value)}
+                    placeholder="例如: 10.1145/276675.276685"
+                    className="w-full px-3 py-2 rounded-xl text-sm outline-none"
+                    style={{
+                      background: 'var(--glass-bg)',
+                      border: '1px solid var(--glass-border)',
+                      color: 'var(--text-primary)',
+                      boxShadow: 'var(--glass-inset)',
+                    }}
+                  />
+                  <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>从 CrossRef 免费获取文献元数据</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setDoiDialogOpen(false); setDoiInput(''); }}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                    style={{ background: 'var(--glass-bg-hover)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)' }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleImportDoi}
+                    disabled={doiImporting || !doiInput.trim()}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+                    style={{ background: 'oklch(0.28 0.02 60)' }}
+                  >
+                    {doiImporting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : '解析并导入'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">{doiPreview.title}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {doiPreview.authors.join(', ')} · {doiPreview.journal} · {doiPreview.year}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setDoiPreview(null); setDoiInput(''); }}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                    style={{ background: 'var(--glass-bg-hover)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)' }}
+                  >
+                    继续导入
+                  </button>
+                  <button
+                    onClick={() => { setDoiDialogOpen(false); setDoiPreview(null); setDoiInput(''); }}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
+                    style={{ background: 'oklch(0.28 0.02 60)' }}
+                  >
+                    完成
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -284,6 +417,7 @@ function ReferenceCard({
   onDelete: (id: string) => void;
   isUpdating: boolean;
 }) {
+  const navigate = useNavigate();
   const statusInfo = STATUS_LABELS[ref.readingStatus] ?? STATUS_LABELS.UNREAD;
 
   return (
@@ -422,12 +556,31 @@ function ReferenceDetailDialog({
   const { data: fullRef } = useReference(ref.id);
   const linkedTasks = fullRef?.tasks ?? [];
   const linkedNotes = fullRef?.linkedNotes ?? [];
+  const [citationFormat, setCitationFormat] = useState<'gb7714' | 'apa' | 'mla' | 'chicago' | 'bibtex'>('gb7714');
+  const [copied, setCopied] = useState(false);
 
   const handleCreateTask = () => {
     onClose();
     navigate('/tasks', {
       state: { prefillReferenceId: ref.id, prefillTitle: `精读：${ref.title}` },
     });
+  };
+
+  const handleCopyCitation = async () => {
+    try {
+      const res = await fetch(`/api/v1/references/${ref.id}/export-citation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ format: citationFormat }),
+      });
+      if (!res.ok) throw new Error('导出失败');
+      const data = await res.json();
+      await navigator.clipboard.writeText(data.citation ?? '');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // silent fail
+    }
   };
 
   return (
@@ -646,6 +799,40 @@ function ReferenceDetailDialog({
               ))}
             </div>
           )}
+        </div>
+
+        {/* 引用导出 */}
+        <div className="pt-2 space-y-2">
+          <div className="flex items-center gap-2">
+            <select
+              value={citationFormat}
+              onChange={(e) => setCitationFormat(e.target.value as any)}
+              className="text-xs px-2 py-1.5 rounded-lg outline-none"
+              style={{
+                background: 'var(--glass-bg-hover)',
+                border: '1px solid var(--glass-border)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <option value="gb7714">GB/T 7714</option>
+              <option value="apa">APA</option>
+              <option value="mla">MLA</option>
+              <option value="chicago">Chicago</option>
+              <option value="bibtex">BibTeX</option>
+            </select>
+            <button
+              onClick={handleCopyCitation}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={{
+                background: 'var(--glass-bg-hover)',
+                border: '1px solid var(--glass-border)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? '已复制' : '复制引用'}
+            </button>
+          </div>
         </div>
 
         {ref.filePath && (

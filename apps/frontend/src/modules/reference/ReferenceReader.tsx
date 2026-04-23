@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, MessageSquare, Plus, Trash2, X, Highlighter,
-  BookOpen, Tag, Calendar, User, FileText, Loader2,
+  ArrowLeft, MessageSquare, X, Highlighter,
+  Tag, Calendar, User, FileText, Loader2,
 } from 'lucide-react';
 import type { ReferenceResponseDto } from '@phd/shared-types';
 import { useReference, useUpdateReadingStatus, useReferenceNotes, useCreateReferenceNote } from '../../hooks/useReferences';
@@ -41,7 +41,7 @@ export default function ReferenceReader() {
   const [noteColor, setNoteColor] = useState('#FFD700');
 
   const { data: reference, isLoading: refLoading, error: refError } = useReference(id ?? '');
-  const { data: notes, isLoading: notesLoading } = useReferenceNotes(id ?? '');
+  const { data: notes } = useReferenceNotes(id ?? '');
   const updateStatusMutation = useUpdateReadingStatus();
   const createNoteMutation = useCreateReferenceNote();
 
@@ -102,9 +102,7 @@ export default function ReferenceReader() {
   const statusInfo = STATUS_LABELS[reference.readingStatus] ?? STATUS_LABELS.UNREAD;
   const fileUrl = reference.filePath
     ? `/uploads/papers/${reference.filePath}`
-    : reference.pdfUrl ?? '';
-
-  const pageNotes = notes?.filter((n) => n.pageNumber === selectedPage) ?? [];
+    : '';
 
   return (
     <div className="fixed inset-0 z-40 flex" style={{ background: 'var(--background)' }}>
@@ -154,7 +152,7 @@ export default function ReferenceReader() {
           <PdfViewer
             fileUrl={fileUrl}
             onTextSelect={handleTextSelect}
-            annotations={notes ?? []}
+            annotations={(notes ?? []).map((n) => ({ ...n, text: n.text ?? undefined }))}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -210,8 +208,7 @@ export default function ReferenceReader() {
               <ReferenceInfo reference={reference} />
             ) : (
               <NotesPanel
-                notes={notes ?? []}
-                pageNotes={pageNotes}
+                notes={(notes ?? []).map((n) => ({ ...n, text: n.text ?? undefined }))}
                 selectedPage={selectedPage}
                 selectedText={selectedText}
                 noteInputOpen={noteInputOpen}
@@ -304,7 +301,6 @@ function ReferenceInfo({ reference: ref }: { reference: ReferenceResponseDto }) 
 
 function NotesPanel({
   notes,
-  pageNotes,
   selectedText,
   noteInputOpen,
   noteContent,
@@ -316,7 +312,6 @@ function NotesPanel({
   isSubmitting,
 }: {
   notes: Array<{ id: string; pageNumber: number; text?: string; color: string; content: string; createdAt: string }>;
-  pageNotes: typeof notes;
   selectedPage: number;
   selectedText: string;
   noteInputOpen: boolean;

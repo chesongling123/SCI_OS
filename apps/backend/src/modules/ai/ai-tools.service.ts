@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
 import { EmbeddingService } from '../../shared/embedding.service';
+import { DoiImporterService } from '../../shared/doi-importer.service';
 import { TaskStatus } from '@prisma/client';
 
 /**
@@ -262,6 +263,35 @@ export const PHD_OS_TOOLS = [
     },
   },
   {
+    name: 'create_task',
+    description: '为用户创建一个新任务，可关联到特定文献',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: {
+          type: 'string',
+          description: '任务标题',
+        },
+        status: {
+          type: 'string',
+          enum: ['TODO', 'IN_PROGRESS', 'DONE'],
+          description: '任务状态，默认 TODO',
+          default: 'TODO',
+        },
+        priority: {
+          type: 'number',
+          description: '优先级：1=P1最高, 2=P2, 3=P3, 4=P4最低，默认 3',
+          default: 3,
+        },
+        referenceId: {
+          type: 'string',
+          description: '关联文献 ID，可选',
+        },
+      },
+      required: ['title'],
+    },
+  },
+  {
     name: 'create_reference',
     description: '为用户创建一条文献记录，适用于用户口述或粘贴的文献信息',
     input_schema: {
@@ -305,6 +335,20 @@ export const PHD_OS_TOOLS = [
       required: ['title'],
     },
   },
+  {
+    name: 'import_reference_by_doi',
+    description: '通过 DOI 从 CrossRef 自动获取文献元数据并导入到用户文献库中',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        doi: {
+          type: 'string',
+          description: '文献 DOI，例如 10.1145/276675.276685',
+        },
+      },
+      required: ['doi'],
+    },
+  },
 ];
 
 /**
@@ -318,6 +362,7 @@ export class AiToolsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly embedding: EmbeddingService,
+    private readonly doiImporter: DoiImporterService,
   ) {}
 
   /**
@@ -356,6 +401,8 @@ export class AiToolsService {
           return await this.createTask(userId, input);
         case 'create_reference':
           return await this.createReference(userId, input);
+        case 'import_reference_by_doi':
+          return await this.importReferenceByDoi(userId, input);
         default:
           throw new Error(`未知工具: ${name}`);
       }
@@ -1367,5 +1414,48 @@ export class AiToolsService {
       title: ref.title,
       message: `文献「${ref.title}」已创建`,
     });
+  }
+
+  private async importReferenceByDoi(userId: string, input: Record<string, unknown>): Promise<string> {
+    const doi = String(input.doi ?? '').trim();
+    if (!doi) {
+      return JSON.stringify({ error: 'DOI 不能为空' });
+    }
+
+    try {
+      const dto = await this.doiImporter.fetchByDoi(doi);
+      const ref = await this.prisma.reference.create({
+        data: {
+          userId,
+          title: dto.title,
+          authors: dto.authors ?? [],
+          year: dto.year ?? undefined,
+          journal: dto.journal ?? undefined,
+          doi: dto.doi ?? undefined,
+          abstract: dto.abstract ?? undefined,
+          tags: (dto.keywords ?? []).slice(0, 5),
+          url: dto.url ?? undefined,
+          volume: dto.volume ?? undefined,
+          issue: dto.issue ?? undefined,
+          pages: dto.pages ?? undefined,
+          keywords: dto.keywords ?? [],
+          literatureType: 'JOURNAL_ARTICLE' as any,
+        },
+      });
+
+      return JSON.stringify({
+        success: true,
+        id: ref.id,
+        title: ref.title,
+        authors: ref.authors,
+        year: ref.year,
+        journal: ref.journal,
+        doi: ref.doi,
+        message: `文献「${ref.title}」已通过 DOI 导入`,
+      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return JSON.stringify({ error: `DOI 导入失败: ${msg}` });
+    }
   }
 }

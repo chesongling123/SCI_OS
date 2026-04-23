@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
 import { EmbeddingService } from '../../shared/embedding.service';
+import { DoiImporterService } from '../../shared/doi-importer.service';
+import { CitationService, CitationFormat } from '../../shared/citation.service';
 import { CreateReferenceDto, UpdateReferenceDto, UpdateReadingStatusDto } from './dto';
 
 @Injectable()
@@ -10,6 +12,8 @@ export class ReferenceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly embedding: EmbeddingService,
+    private readonly doiImporter: DoiImporterService,
+    private readonly citation: CitationService,
   ) {}
 
   /**
@@ -374,6 +378,75 @@ export class ReferenceService {
       where: { id },
       data: { deletedAt: new Date() },
     });
+  }
+
+  /**
+   * 通过 DOI 导入文献
+   */
+  async importByDoi(userId: string, doi: string) {
+    const meta = await this.doiImporter.fetchByDoi(doi);
+
+    const ref = await this.prisma.reference.create({
+      data: {
+        userId,
+        title: meta.title,
+        authors: meta.authors,
+        year: meta.year,
+        journal: meta.journal,
+        volume: meta.volume,
+        issue: meta.issue,
+        pages: meta.pages,
+        doi: meta.doi,
+        url: meta.url,
+        abstract: meta.abstract,
+        keywords: meta.keywords,
+        literatureType: 'JOURNAL_ARTICLE',
+        tags: meta.keywords.slice(0, 5),
+      },
+      include: {
+        folder: true,
+      },
+    });
+
+    // 异步生成 embedding
+    const textToEmbed = [meta.title, ...meta.authors, ...meta.keywords, meta.abstract ?? '']
+      .filter(Boolean)
+      .join('\n')
+      .slice(0, 4000);
+    this.embedding.embedText(textToEmbed).then((vec) => {
+      if (vec) {
+        const v = `[${vec.join(',')}]`;
+        this.prisma.$executeRaw`UPDATE references SET embedding = ${v}::vector WHERE id = ${ref.id}`.catch(() => {});
+      }
+    }).catch(() => {});
+
+    return ref;
+  }
+
+  /**
+   * 生成引用格式
+   */
+  async exportCitation(userId: string, id: string, format: CitationFormat) {
+    const ref = await this.prisma.reference.findFirst({
+      where: { id, userId, deletedAt: null },
+    });
+    if (!ref) {
+      throw new NotFoundException('文献不存在');
+    }
+
+    return this.citation.format(
+      {
+        title: ref.title,
+        authors: ref.authors,
+        year: ref.year,
+        journal: ref.journal,
+        volume: ref.volume,
+        issue: ref.issue,
+        pages: ref.pages,
+        doi: ref.doi,
+      },
+      format,
+    );
   }
 
   // ========== 私有方法 ==========

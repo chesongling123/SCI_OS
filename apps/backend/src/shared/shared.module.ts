@@ -1,6 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { EmbeddingService } from './embedding.service';
+import { DoiImporterService } from './doi-importer.service';
+import { CitationService } from './citation.service';
 
 /**
  * 共享模块
@@ -8,7 +10,7 @@ import { EmbeddingService } from './embedding.service';
  */
 @Global()
 @Module({
-  providers: [PrismaService, EmbeddingService],
-  exports: [PrismaService, EmbeddingService],
+  providers: [PrismaService, EmbeddingService, DoiImporterService, CitationService],
+  exports: [PrismaService, EmbeddingService, DoiImporterService, CitationService],
 })
 export class SharedModule {}

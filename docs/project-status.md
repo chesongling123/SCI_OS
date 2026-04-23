@@ -1,7 +1,7 @@
 # PhD_OS 项目状态追踪
 
 > **文档类型**: 项目进度备忘  
-> **最后更新**: 2026-04-27  
+> **最后更新**: 2026-04-23  
 > **当前阶段**: ✅ Phase 1 MVP 已完成，进入 Phase 2 扩展
 
 ---
@@ -408,6 +408,8 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | `@dnd-kit/core` 实际最新版为 6.x | 架构文档写 7.0+，实际不存在 | 已修正为 `^6.3.0`，后续跟进官方发布 |
 | 宿主机 PostgreSQL 14 占用 5432 | 需要记住开发端口是 5433 | 已在文档和 `.env` 中明确标注 |
 | 端口 3000 残留进程 | 后端异常退出后可能残留 | `kill $(lsof -t -i:3000)` 即可恢复 |
+| `create_task` AI 工具未注册 | LLM 无法通过工具调用创建任务 | ✅ 已修复：补全 `PHD_OS_TOOLS` 定义 |
+| 前端 TS 编译错误 | `ReferenceReader`/`PdfViewer`/`TaskPage`/`useReferences` 有类型/未使用错误 | ✅ 已修复：`tsc -b && vite build` 全量通过 |
 
 ---
 
@@ -428,8 +430,9 @@ pnpm -F @phd/frontend build → ✅ 零错误
 - [x] AI 文献工具集成（get_references / search_references / get_reference_detail / create_reference）
 - [x] 语义检索 API（骨架，fallback 到全文搜索）
 - [x] RAG 语义检索（pgvector embedding，已接入豆包 Ark Embedding API）
-- [ ] 文献 ↔ 任务/笔记/番茄钟联动
-- [ ] DOI 导入 + 引用导出
+- [x] 文献 ↔ 任务/笔记联动（Task↔Reference、Note↔Reference）
+- [x] DOI 导入 + 引用导出（CrossRef API + 5 种引用格式）
+- [ ] Pomodoro ↔ 任务/文献联动（Schema 就绪，API/前端未接入）
 
 ---
 
@@ -441,3 +444,7 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | 2026-04-23 | 更新：补充认证系统与 AI 助手模块，修正 Phase 1 完成状态，调整 Phase 2 规划 |
 | 2026-04-24 | Phase 2 笔记系统完成：TipTap 编辑器、CRUD、搜索、标签、文件夹树、AI 工具集成、UI 打磨（收起/ConfirmDialog/卡片精简） |
 | 2026-04-23 | Phase 2 文献管理模块完成：数据库 Schema（Reference/ReferenceFolder/ReferenceNote）、后端 18 个 REST API、前端文献库（列表/筛选/搜索/上传/文件夹树）、PDF.js 阅读器（翻页/缩放/文本选择/高亮批注）、AI 工具（get_references/search_references/get_reference_detail/create_reference）、语义检索骨架、删除手动录入功能 |
+| 2026-04-23 | 跨模块联动 Phase 1/2：Task↔Reference（任务卡片显示文献标题、任务弹窗可选文献、文献详情可创建精读任务）、Note↔Reference（笔记编辑器可选关联文献、文献详情可写读书笔记） |
+| 2026-04-23 | RAG 语义检索完成：EmbeddingService（豆包 Ark API）、notes/references 的 `vector(1024)` 字段、`semanticSearch` API、AI 工具 `search_notes`/`search_references` 支持 `semantic` 标志 |
+| 2026-04-23 | DOI 导入 + 引用导出完成：`DoiImporterService`（CrossRef API）、`CitationService`（5 种格式：bibtex/gb7714/apa/mla/chicago）、前端 DOI 导入弹窗、文献详情页引用复制按钮、AI 工具 `import_reference_by_doi` |
+| 2026-04-23 | 编译错误修复：`create_task` AI 工具补注册到 `PHD_OS_TOOLS`、前端 `ReferenceReader.tsx`/`PdfViewer.tsx`/`TaskPage.tsx`/`useReferences.ts` TypeScript 错误清零、前后端 `pnpm run build` 全量通过 |

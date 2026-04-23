@@ -5,7 +5,6 @@ import type {
   ReferenceResponseDto,
   ReferenceFolderResponseDto,
   CreateReferenceFolderDto,
-  UpdateReferenceFolderDto,
 } from '@phd/shared-types';
 import { authHeaders } from '../lib/api';
 

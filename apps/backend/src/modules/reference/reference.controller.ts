@@ -100,6 +100,34 @@ export class ReferenceController {
     return this.referenceService.remove(req.user.id, id);
   }
 
+  // ========== DOI 导入 ==========
+
+  @Post('import-doi')
+  @ApiOperation({ summary: '通过 DOI 导入文献（CrossRef）' })
+  @ApiResponse({ status: 201, description: '文献导入成功' })
+  @ApiResponse({ status: 400, description: 'DOI 无效或解析失败' })
+  async importByDoi(
+    @Request() req: { user: { id: string } },
+    @Body() body: { doi: string },
+  ) {
+    return this.referenceService.importByDoi(req.user.id, body.doi);
+  }
+
+  // ========== 引用导出 ==========
+
+  @Post(':id/export-citation')
+  @ApiOperation({ summary: '导出文献引用格式（BibTeX / GB7714 / APA / MLA）' })
+  @ApiResponse({ status: 200, description: '返回格式化引用文本' })
+  @ApiResponse({ status: 404, description: '文献不存在' })
+  async exportCitation(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+    @Body() body: { format: 'bibtex' | 'gb7714' | 'apa' | 'mla' | 'chicago' },
+  ) {
+    const citation = await this.referenceService.exportCitation(req.user.id, id, body.format);
+    return { format: body.format, citation };
+  }
+
   // ========== 文件上传 ==========
 
   @Post('upload')

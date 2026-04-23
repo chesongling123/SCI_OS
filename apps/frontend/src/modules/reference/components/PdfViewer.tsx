@@ -83,7 +83,7 @@ export default function PdfViewer({ fileUrl, onTextSelect, annotations = [] }: P
       canvas.style.height = `${viewport.height}px`;
 
       // 渲染 PDF 到 canvas
-      await page.render({ canvasContext: ctx, viewport }).promise;
+      await page.render({ canvas: canvas, canvasContext: ctx, viewport }).promise;
 
       // 渲染文本层（用于文本选择和搜索）
       const textContent = await page.getTextContent();
@@ -93,7 +93,7 @@ export default function PdfViewer({ fileUrl, onTextSelect, annotations = [] }: P
       // 使用 PDF.js 的 TextLayer 来渲染文本
       const textLayerFrag = document.createDocumentFragment();
       for (const item of textContent.items) {
-        const textItem = item as pdfjsLib.TextItem;
+        const textItem = item as { str: string; transform: number[]; fontName: string; width: number; dir: string };
         const tx = pdfjsLib.Util.transform(viewport.transform, textItem.transform);
         const fontHeight = Math.hypot(tx[0], tx[1]);
         const fontWidth = Math.hypot(tx[2], tx[3]);

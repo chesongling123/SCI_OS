@@ -134,6 +134,7 @@ export default function TaskPage() {
         onUpdate={handleUpdateSubmit}
         initialStatus={dialogStatus}
         editTask={editTask}
+        prefillReferenceId={prefillReferenceId}
       />
 
       {/* 删除确认弹窗 */}
