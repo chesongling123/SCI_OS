@@ -285,7 +285,7 @@ GET /api/v1/pomodoro/stats/daily?days=7 → ✅ 7 天聚合数据
 | 问题 | 影响 | 解决计划 |
 |:---|:---|:---|
 | Prisma 自引用关系类型推断 | 需 `as any` 绕过 | 锁定 Prisma 6.6.0，Phase 2 评估升级 |
-| 前端 chunk > 500KB | 构建警告 | Phase 2 用 `React.lazy` 代码分割 |
+| ~~前端 chunk > 500KB~~ | ~~构建警告~~ | ~~Phase 2 用 `React.lazy` 代码分割~~ ✅ **已解决**：路由级 `React.lazy` + `manualChunks` 拆 vendor，首屏 JS 从 191KB 降至 ~91KB gzip |
 | 默认用户硬编码 | 所有数据关联 demo@phd-os.local | Phase 2 接入 JWT 认证后移除 |
 | OpenClaw 未集成 | AI 功能未启动 | Phase 2 通过 `npm install openclaw` 本地运行 |
 

@@ -41,7 +41,7 @@ async function bootstrap() {
 
   console.log(`🚀 后端服务已启动: http://localhost:${port}`);
   console.log(`📚 Swagger 文档: http://localhost:${port}/api/docs`);
-  console.log(`🔌 OpenClaw Gateway: ws://localhost:18789`);
+  console.log(`🤖 AI 服务: ${process.env.AI_PROVIDER || 'kimi-coding'}`);
 }
 
 bootstrap();

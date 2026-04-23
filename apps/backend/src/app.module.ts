@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SharedModule } from './shared/shared.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { TaskModule } from './modules/task/task.module';
 import { PomodoroModule } from './modules/pomodoro/pomodoro.module';
+import { AiModule } from './modules/ai/ai.module';
 
 /**
  * 根模块
@@ -13,6 +15,12 @@ import { PomodoroModule } from './modules/pomodoro/pomodoro.module';
  */
 @Module({
   imports: [
+    // 环境变量加载（自动读取 .env）
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', 'apps/backend/.env'],
+    }),
+
     // 共享能力（Prisma、Redis 等）
     SharedModule,
 
@@ -31,6 +39,9 @@ import { PomodoroModule } from './modules/pomodoro/pomodoro.module';
     CalendarModule,
     TaskModule,
     PomodoroModule,
+
+    // Phase 2 AI 模块
+    AiModule,
   ],
 })
 export class AppModule {}

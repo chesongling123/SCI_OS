@@ -150,3 +150,35 @@ export interface PaginatedResponse<T> {
   nextCursor?: string;
   hasMore: boolean;
 }
+
+// ============================================
+// AI 助手模块 DTO
+// ============================================
+
+export interface ChatRequestDto {
+  message: string;
+  skill?: string;
+}
+
+export interface ChatMessageDto {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  status?: 'streaming' | 'complete' | 'error';
+  toolCalls?: ToolCallDto[];
+}
+
+export interface ToolCallDto {
+  tool: string;
+  status: 'pending' | 'running' | 'complete' | 'error';
+  params?: Record<string, unknown>;
+  result?: string;
+}
+
+export interface DirectLlmRequestDto {
+  text: string;
+  operation: 'translate' | 'polish' | 'summarize';
+  targetLang?: string;
+  maxLength?: number;
+}

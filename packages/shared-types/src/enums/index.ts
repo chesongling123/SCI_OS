@@ -44,3 +44,15 @@ export const AiMessageRole = {
 } as const;
 
 export type AiMessageRole = (typeof AiMessageRole)[keyof typeof AiMessageRole];
+
+/**
+ * 工具调用状态
+ */
+export const ToolCallStatus = {
+  PENDING: 'pending',
+  RUNNING: 'running',
+  COMPLETE: 'complete',
+  ERROR: 'error',
+} as const;
+
+export type ToolCallStatus = (typeof ToolCallStatus)[keyof typeof ToolCallStatus];

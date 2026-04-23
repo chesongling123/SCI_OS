@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { Calendar, CheckSquare, Timer, Home, Moon, Sun, LogOut, User } from 'lucide-react';
+import { AiChatButton } from '../modules/ai';
 
 const navItems = [
   { path: '/', label: '首页', icon: Home },
@@ -107,6 +108,9 @@ export default function Layout() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         <Outlet />
       </main>
+
+      {/* AI 助手浮动按钮 — 全局可访问 */}
+      <AiChatButton />
     </div>
   );
 }

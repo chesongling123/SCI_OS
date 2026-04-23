@@ -1,0 +1,21 @@
+{
+  "name": "@phd/mcp-pomodoro",
+  "version": "1.0.0",
+  "description": "PhD_OS Pomodoro MCP Server — exposes focus time data to OpenClaw",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "pg": "^8.15.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0",
+    "typescript": "^5.5.0"
+  }
+}
