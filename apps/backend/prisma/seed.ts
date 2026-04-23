@@ -1,4 +1,4 @@
-import { PrismaClient, TaskStatus } from '@prisma/client';
+import { PrismaClient, TaskStatus, ReadingStatus, LiteratureType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -6,6 +6,9 @@ async function main() {
   console.log('🌱 开始注入种子数据...');
 
   // 清理旧数据
+  await prisma.referenceNote.deleteMany();
+  await prisma.reference.deleteMany();
+  await prisma.referenceFolder.deleteMany();
   await prisma.note.deleteMany();
   await prisma.noteFolder.deleteMany();
   await prisma.pomodoroSession.deleteMany();
@@ -189,6 +192,149 @@ async function main() {
     });
   }
   console.log(`✅ 已创建 ${notes.length} 条示例笔记 + 3 个文件夹`);
+
+  // ========== 文献种子数据 ==========
+  const references = [
+    {
+      title: 'Attention Is All You Need',
+      authors: ['Vaswani, A.', 'Shazeer, N.', 'Parmar, N.', 'Uszkoreit, J.', 'Jones, L.', 'Gomez, A. N.', 'Kaiser, Ł.', 'Polosukhin, I.'],
+      year: 2017,
+      journal: 'Advances in Neural Information Processing Systems (NeurIPS)',
+      pages: '5998-6008',
+      doi: '10.48550/arXiv.1706.03762',
+      url: 'https://arxiv.org/abs/1706.03762',
+      abstract: 'The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely.',
+      keywords: ['Transformer', 'Attention', 'NLP', 'Deep Learning'],
+      literatureType: LiteratureType.CONFERENCE_PAPER,
+      readingStatus: ReadingStatus.DEEP_READ,
+      priority: 1,
+      rating: 5,
+      tags: ['深度学习', 'NLP', '必读经典'],
+    },
+    {
+      title: 'BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding',
+      authors: ['Devlin, J.', 'Chang, M. W.', 'Lee, K.', 'Toutanova, K.'],
+      year: 2019,
+      journal: 'Proceedings of NAACL-HLT',
+      pages: '4171-4186',
+      doi: '10.18653/v1/N19-1423',
+      url: 'https://arxiv.org/abs/1810.04805',
+      abstract: 'We introduce a new language representation model called BERT, which stands for Bidirectional Encoder Representations from Transformers. Unlike recent language representation models, BERT is designed to pre-train deep bidirectional representations from unlabeled text by jointly conditioning on both left and right context in all layers.',
+      keywords: ['BERT', 'Pre-training', 'NLP', 'Transformer'],
+      literatureType: LiteratureType.CONFERENCE_PAPER,
+      readingStatus: ReadingStatus.READ,
+      priority: 1,
+      rating: 5,
+      tags: ['深度学习', 'NLP', '预训练'],
+    },
+    {
+      title: 'Deep Residual Learning for Image Recognition',
+      authors: ['He, K.', 'Zhang, X.', 'Ren, S.', 'Sun, J.'],
+      year: 2016,
+      journal: 'IEEE Conference on Computer Vision and Pattern Recognition (CVPR)',
+      pages: '770-778',
+      doi: '10.1109/CVPR.2016.90',
+      url: 'https://arxiv.org/abs/1512.03385',
+      abstract: 'Deeper neural networks are more difficult to train. We present a residual learning framework to ease the training of networks that are substantially deeper than those used previously. We explicitly reformulate the layers as learning residual functions with reference to the layer inputs, instead of learning unreferenced functions.',
+      keywords: ['ResNet', 'Computer Vision', 'Deep Learning', 'Image Recognition'],
+      literatureType: LiteratureType.CONFERENCE_PAPER,
+      readingStatus: ReadingStatus.DEEP_READ,
+      priority: 1,
+      rating: 5,
+      tags: ['计算机视觉', '深度学习', '必读经典'],
+    },
+    {
+      title: 'A Survey on Temporal Action Localization',
+      authors: ['Zhao, Y.', 'Xiong, Y.', 'Lin, D.'],
+      year: 2020,
+      journal: 'IEEE Transactions on Pattern Analysis and Machine Intelligence',
+      volume: '43',
+      issue: '10',
+      pages: '3323-3345',
+      doi: '10.1109/TPAMI.2020.2984090',
+      abstract: 'Temporal action localization is a fundamental yet challenging task in video understanding. In this survey, we provide a comprehensive review of the state-of-the-art approaches for temporal action localization, including one-stage and two-stage methods, as well as emerging topics such as weakly-supervised and few-shot learning.',
+      keywords: ['Temporal Action Localization', 'Video Understanding', 'Survey'],
+      literatureType: LiteratureType.JOURNAL_ARTICLE,
+      readingStatus: ReadingStatus.READING,
+      priority: 2,
+      rating: 4,
+      tags: ['时序动作检测', '综述', '视频理解'],
+    },
+    {
+      title: 'An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale',
+      authors: ['Dosovitskiy, A.', 'Beyer, L.', 'Kolesnikov, A.', 'Weissenborn, D.', 'Zhai, X.', 'Unterthiner, T.', 'Dehghani, M.', 'Minderer, M.', 'Heigold, G.', 'Gelly, S.', 'Uszkoreit, J.', 'Houlsby, N.'],
+      year: 2021,
+      journal: 'International Conference on Learning Representations (ICLR)',
+      doi: '10.48550/arXiv.2010.11929',
+      url: 'https://arxiv.org/abs/2010.11929',
+      abstract: 'While the Transformer architecture has become the de-facto standard for natural language processing tasks, its applications to computer vision remain limited. In vision, attention is either applied in conjunction with convolutional networks, or used to replace certain components of convolutional networks while keeping their overall structure in place.',
+      keywords: ['Vision Transformer', 'ViT', 'Computer Vision', 'Transformer'],
+      literatureType: LiteratureType.CONFERENCE_PAPER,
+      readingStatus: ReadingStatus.UNREAD,
+      priority: 2,
+      tags: ['计算机视觉', 'ViT', 'Transformer'],
+    },
+    {
+      title: 'Generative Adversarial Networks',
+      authors: ['Goodfellow, I.', 'Pouget-Abadie, J.', 'Mirza, M.', 'Xu, B.', 'Warde-Farley, D.', 'Ozair, S.', 'Courville, A.', 'Bengio, Y.'],
+      year: 2014,
+      journal: 'Advances in Neural Information Processing Systems (NeurIPS)',
+      pages: '2672-2680',
+      doi: '10.48550/arXiv.1406.2661',
+      url: 'https://arxiv.org/abs/1406.2661',
+      abstract: 'We propose a new framework for estimating generative models via an adversarial process, in which we simultaneously train two models: a generative model G that captures the data distribution, and a discriminative model D that estimates the probability that a sample came from the training data rather than G.',
+      keywords: ['GAN', 'Generative Models', 'Deep Learning'],
+      literatureType: LiteratureType.CONFERENCE_PAPER,
+      readingStatus: ReadingStatus.SKIMMED,
+      priority: 3,
+      rating: 4,
+      tags: ['生成模型', '深度学习', '经典论文'],
+    },
+    {
+      title: 'Language Models are Few-Shot Learners',
+      authors: ['Brown, T.', 'Mann, B.', 'Ryder, N.', 'Subbiah, M.', 'Kaplan, J. D.', 'Dhariwal, P.', 'Neelakantan, A.', 'Shyam, P.', 'Sastry, G.', 'Askell, A.'],
+      year: 2020,
+      journal: 'Advances in Neural Information Processing Systems (NeurIPS)',
+      pages: '1877-1901',
+      doi: '10.48550/arXiv.2005.14165',
+      url: 'https://arxiv.org/abs/2005.14165',
+      abstract: 'Recent work has demonstrated substantial gains on many NLP tasks and benchmarks by pre-training on a large corpus of text followed by fine-tuning on a specific task. While typically task-agnostic in architecture, this method still requires task-specific fine-tuning datasets of thousands or tens of thousands of examples. By contrast, humans can perform many novel language tasks from only a few examples or from simple instructions.',
+      keywords: ['GPT-3', 'Few-Shot Learning', 'Language Models', 'NLP'],
+      literatureType: LiteratureType.CONFERENCE_PAPER,
+      readingStatus: ReadingStatus.UNREAD,
+      priority: 2,
+      tags: ['大语言模型', 'NLP', 'GPT'],
+    },
+    {
+      title: 'Momentum Contrast for Unsupervised Visual Representation Learning',
+      authors: ['He, K.', 'Fan, H.', 'Wu, Y.', 'Xie, S.', 'Girshick, R.'],
+      year: 2020,
+      journal: 'IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)',
+      pages: '9729-9738',
+      doi: '10.1109/CVPR42600.2020.00975',
+      url: 'https://arxiv.org/abs/1911.05722',
+      abstract: 'We present Momentum Contrast (MoCo) for unsupervised visual representation learning. From a perspective on contrastive learning as dictionary look-up, we build a dynamic dictionary with a queue and a moving-averaged encoder.',
+      keywords: ['Self-Supervised Learning', 'Contrastive Learning', 'Computer Vision'],
+      literatureType: LiteratureType.CONFERENCE_PAPER,
+      readingStatus: ReadingStatus.UNREAD,
+      priority: 3,
+      tags: ['自监督学习', '计算机视觉', '对比学习'],
+    },
+  ];
+
+  for (const r of references) {
+    await prisma.reference.create({
+      data: {
+        ...r,
+        userId: user.id,
+        authors: r.authors as any,
+        keywords: r.keywords as any,
+        tags: r.tags as any,
+        keyFindings: [] as any,
+      } as any,
+    });
+  }
+  console.log(`✅ 已创建 ${references.length} 条示例文献`);
 }
 
 main()

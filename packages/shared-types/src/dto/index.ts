@@ -243,3 +243,126 @@ export interface DirectLlmRequestDto {
   targetLang?: string;
   maxLength?: number;
 }
+
+// ============================================
+// 文献管理模块 DTO
+// ============================================
+
+export interface CreateReferenceDto {
+  title: string;
+  authors?: string[];
+  year?: number;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  doi?: string;
+  url?: string;
+  abstract?: string;
+  keywords?: string[];
+  literatureType?: string;
+  tags?: string[];
+  folderId?: string | null;
+  priority?: number;
+}
+
+export interface UpdateReferenceDto {
+  title?: string;
+  authors?: string[];
+  year?: number;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  doi?: string;
+  url?: string;
+  abstract?: string;
+  abstractZh?: string;
+  keywords?: string[];
+  literatureType?: string;
+  readingStatus?: string;
+  priority?: number;
+  rating?: number;
+  tags?: string[];
+  folderId?: string | null;
+}
+
+export interface ReferenceResponseDto {
+  id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  journal: string | null;
+  volume: string | null;
+  issue: string | null;
+  pages: string | null;
+  doi: string | null;
+  url: string | null;
+  abstract: string | null;
+  abstractZh: string | null;
+  keywords: string[];
+  literatureType: string;
+  readingStatus: string;
+  priority: number;
+  rating: number | null;
+  tags: string[];
+  folderId: string | null;
+  filePath: string | null;
+  fileSize: number | null;
+  thumbnailPath: string | null;
+  aiSummary: string | null;
+  keyFindings: string[];
+  readCount: number;
+  totalReadTime: number;
+  lastReadAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReferenceNoteDto {
+  pageNumber: number;
+  rect?: { x: number; y: number; width: number; height: number };
+  text?: string;
+  color?: string;
+  content: string;
+}
+
+export interface ReferenceNoteResponseDto {
+  id: string;
+  pageNumber: number;
+  rect: object | null;
+  text: string | null;
+  color: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ImportDoiDto {
+  doi: string;
+  downloadPdf?: boolean;
+}
+
+export interface ExportCitationDto {
+  ids: string[];
+  format: 'gb7714' | 'apa' | 'mla' | 'chicago' | 'bibtex';
+}
+
+export interface CreateReferenceFolderDto {
+  name: string;
+  parentId?: string | null;
+}
+
+export interface UpdateReferenceFolderDto {
+  name?: string;
+  parentId?: string | null;
+}
+
+export interface ReferenceFolderResponseDto {
+  id: string;
+  name: string;
+  parentId: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}

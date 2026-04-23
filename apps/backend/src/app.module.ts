@@ -8,6 +8,7 @@ import { TaskModule } from './modules/task/task.module';
 import { PomodoroModule } from './modules/pomodoro/pomodoro.module';
 import { AiModule } from './modules/ai/ai.module';
 import { NoteModule } from './modules/note/note.module';
+import { ReferenceModule } from './modules/reference/reference.module';
 
 /**
  * 根模块
@@ -46,6 +47,9 @@ import { NoteModule } from './modules/note/note.module';
 
     // Phase 2 笔记模块
     NoteModule,
+
+    // Phase 2 文献管理模块
+    ReferenceModule,
   ],
 })
 export class AppModule {}

@@ -56,3 +56,33 @@ export const ToolCallStatus = {
 } as const;
 
 export type ToolCallStatus = (typeof ToolCallStatus)[keyof typeof ToolCallStatus];
+
+/**
+ * 文献阅读状态
+ */
+export const ReadingStatus = {
+  UNREAD: 'UNREAD',
+  READING: 'READING',
+  READ: 'READ',
+  SKIMMED: 'SKIMMED',
+  DEEP_READ: 'DEEP_READ',
+} as const;
+
+export type ReadingStatus = (typeof ReadingStatus)[keyof typeof ReadingStatus];
+
+/**
+ * 文献类型
+ */
+export const LiteratureType = {
+  JOURNAL_ARTICLE: 'JOURNAL_ARTICLE',
+  CONFERENCE_PAPER: 'CONFERENCE_PAPER',
+  PREPRINT: 'PREPRINT',
+  BOOK: 'BOOK',
+  BOOK_CHAPTER: 'BOOK_CHAPTER',
+  THESIS: 'THESIS',
+  REPORT: 'REPORT',
+  PATENT: 'PATENT',
+  OTHER: 'OTHER',
+} as const;
+
+export type LiteratureType = (typeof LiteratureType)[keyof typeof LiteratureType];

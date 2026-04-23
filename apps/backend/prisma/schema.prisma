@@ -31,6 +31,9 @@ model User {
   pomodoroSessions PomodoroSession[]
   notes            Note[]
   noteFolders      NoteFolder[]
+  references       Reference[]
+  referenceFolders ReferenceFolder[]
+  referenceNotes   ReferenceNote[]
 
   @@map("users")
 }
@@ -86,6 +89,8 @@ model Task {
   self Task? @relation("TaskParent", fields: [parentId], references: [id])
   children Task[] @relation("TaskParent")
   pomodoroSessions PomodoroSession[]
+  referenceId String?
+  reference Reference? @relation(fields: [referenceId], references: [id])
 
   @@index([userId, status])
   @@index([userId, sortOrder])
@@ -119,9 +124,12 @@ model PomodoroSession {
   // 关联
   user User  @relation(fields: [userId], references: [id])
   task Task? @relation(fields: [taskId], references: [id])
+  referenceId String?
+  reference Reference? @relation(fields: [referenceId], references: [id])
 
   @@index([userId, startedAt])
   @@index([taskId])
+  @@index([referenceId])
   @@map("pomodoro_sessions")
 }
 
@@ -170,8 +178,147 @@ model NoteFolder {
 }
 
 // ============================================
-// Phase 2 预留（文献/AI 对话）
+// 文献管理模块（Phase 2）
 // ============================================
-// model Reference { ... }
+
+enum ReadingStatus {
+  UNREAD
+  READING
+  READ
+  SKIMMED
+  DEEP_READ
+}
+
+enum LiteratureType {
+  JOURNAL_ARTICLE
+  CONFERENCE_PAPER
+  PREPRINT
+  BOOK
+  BOOK_CHAPTER
+  THESIS
+  REPORT
+  PATENT
+  OTHER
+}
+
+model Reference {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+
+  // 核心元数据
+  title          String
+  authors        String[]       @default([])
+  year           Int?
+  journal        String?        // 期刊/会议名
+  volume         String?
+  issue          String?
+  pages          String?        // "123-145"
+  doi            String?
+  arxivId        String?
+  pmid           String?
+  url            String?        // 论文主页链接
+  pdfUrl         String?        // PDF 直链（外部）
+
+  // 内容与摘要
+  abstract       String?        @db.Text
+  abstractZh     String?        @db.Text // 中文摘要（AI 翻译或手动）
+  keywords       String[]       @default([])
+  literatureType LiteratureType @default(JOURNAL_ARTICLE)
+
+  // 本地文件
+  filePath       String?        // 本地存储的 PDF 路径（相对 uploads/）
+  fileSize       Int?           // 字节数
+  fileHash       String?        // SHA-256，用于去重
+  thumbnailPath  String?        // 缩略图路径
+
+  // 组织与状态
+  readingStatus  ReadingStatus  @default(UNREAD)
+  priority       Int            @default(3) // 1-4，同 Task
+  rating         Int?           // 1-5 星评分
+  tags           String[]       @default([])
+  folderId       String?
+  folder         ReferenceFolder? @relation(fields: [folderId], references: [id])
+
+  // AI 生成内容
+  aiSummary      String?        @db.Text // AI 结构化摘要
+  keyFindings    String[]       @default([]) // AI 提取的关键发现
+  embedding      Unsupported("vector(768)")? // 语义向量
+
+  // 统计
+  readCount      Int            @default(0)
+  totalReadTime  Int            @default(0) // 总阅读时长（秒）
+  lastReadAt     DateTime?      @db.Timestamptz(3)
+
+  // 关联
+  notes          ReferenceNote[]
+  tasks          Task[]
+  pomodoroSessions PomodoroSession[]
+
+  // 标准字段
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @db.Timestamptz(3)
+  deletedAt      DateTime?      @db.Timestamptz(3)
+
+  @@unique([userId, doi])
+  @@index([userId, readingStatus])
+  @@index([userId, priority])
+  @@index([userId, year])
+  @@index([userId, folderId])
+  @@index([userId, tags])
+  @@index([fileHash])
+  @@index([deletedAt])
+  @@index([userId, createdAt])
+  @@map("references")
+}
+
+model ReferenceFolder {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  name       String
+  parentId   String?
+  parent     ReferenceFolder? @relation("RefFolderHierarchy", fields: [parentId], references: [id])
+  children   ReferenceFolder[] @relation("RefFolderHierarchy")
+  references Reference[]
+  sortOrder  Float       @default(0)
+  createdAt  DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime    @updatedAt @db.Timestamptz(3)
+  deletedAt  DateTime?   @db.Timestamptz(3)
+
+  @@index([userId, parentId])
+  @@index([deletedAt])
+  @@map("reference_folders")
+}
+
+model ReferenceNote {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  referenceId String
+  reference   Reference @relation(fields: [referenceId], references: [id])
+
+  // 批注位置（PDF.js 坐标系）
+  pageNumber  Int
+  rect        Json?     // { x, y, width, height } 高亮区域
+  text        String?   // 选中的原文
+  color       String    @default("#FFD700") // 高亮颜色
+
+  // 笔记内容
+  content     String    @db.Text
+  noteId      String?   // 可选：关联到 Note 系统的笔记
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt   DateTime? @db.Timestamptz(3)
+
+  @@index([referenceId, pageNumber])
+  @@index([deletedAt])
+  @@map("reference_notes")
+}
+
+// ============================================
+// Phase 2 预留（AI 对话）
+// ============================================
 // model AiConversation { ... }
 // model AiMessage { ... }

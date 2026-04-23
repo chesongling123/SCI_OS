@@ -181,6 +181,111 @@ export const PHD_OS_TOOLS = [
       required: ['noteId'],
     },
   },
+  // ===== 文献管理工具 =====
+  {
+    name: 'get_references',
+    description: '获取用户文献库中的文献列表，支持按阅读状态、标签、优先级筛选',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['UNREAD', 'READING', 'READ', 'SKIMMED', 'DEEP_READ'],
+          description: '阅读状态筛选，不传则返回所有状态',
+        },
+        tag: {
+          type: 'string',
+          description: '按标签筛选',
+        },
+        priority: {
+          type: 'number',
+          description: '优先级筛选：1=P1最高, 2=P2, 3=P3, 4=P4最低',
+        },
+        limit: {
+          type: 'number',
+          description: '返回数量上限，默认 20',
+          default: 20,
+        },
+      },
+    },
+  },
+  {
+    name: 'search_references',
+    description: '在用户文献库中搜索文献，匹配标题、作者、摘要、关键词、标签',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: {
+          type: 'string',
+          description: '搜索关键词或短语',
+        },
+        limit: {
+          type: 'number',
+          description: '返回数量上限，默认 10',
+          default: 10,
+        },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'get_reference_detail',
+    description: '获取单篇文献的完整信息，包括元数据、AI摘要、关键发现、批注',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        referenceId: {
+          type: 'string',
+          description: '文献 ID',
+        },
+      },
+      required: ['referenceId'],
+    },
+  },
+  {
+    name: 'create_reference',
+    description: '为用户创建一条文献记录，适用于用户口述或粘贴的文献信息',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: {
+          type: 'string',
+          description: '文献标题',
+        },
+        authors: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '作者列表',
+        },
+        year: {
+          type: 'number',
+          description: '发表年份',
+        },
+        journal: {
+          type: 'string',
+          description: '期刊或会议名称',
+        },
+        doi: {
+          type: 'string',
+          description: 'DOI',
+        },
+        abstract: {
+          type: 'string',
+          description: '摘要',
+        },
+        tags: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '标签列表',
+        },
+        url: {
+          type: 'string',
+          description: '论文链接',
+        },
+      },
+      required: ['title'],
+    },
+  },
 ];
 
 /**
@@ -219,6 +324,14 @@ export class AiToolsService {
           return await this.createNote(userId, input);
         case 'update_note':
           return await this.updateNote(userId, input);
+        case 'get_references':
+          return await this.getReferences(userId, input);
+        case 'search_references':
+          return await this.searchReferences(userId, input);
+        case 'get_reference_detail':
+          return await this.getReferenceDetail(userId, input);
+        case 'create_reference':
+          return await this.createReference(userId, input);
         default:
           throw new Error(`未知工具: ${name}`);
       }
@@ -868,6 +981,188 @@ export class AiToolsService {
       id: note.id,
       title: note.title,
       message: `笔记「${note.title}」已更新`,
+    });
+  }
+
+  // ===== 文献管理工具 =====
+
+  private async getReferences(userId: string, input: Record<string, unknown>): Promise<string> {
+    const status = input.status as string | undefined;
+    const tag = input.tag as string | undefined;
+    const priority = input.priority ? Number(input.priority) : undefined;
+    const limit = Math.min(Number(input.limit ?? 20), 50);
+
+    const refs = await this.prisma.reference.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        ...(status ? { readingStatus: status as any } : {}),
+        ...(tag ? { tags: { has: tag } } : {}),
+        ...(priority ? { priority } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        authors: true,
+        year: true,
+        journal: true,
+        doi: true,
+        readingStatus: true,
+        priority: true,
+        rating: true,
+        tags: true,
+        abstract: true,
+        aiSummary: true,
+        keyFindings: true,
+        createdAt: true,
+      },
+    });
+
+    return JSON.stringify({
+      count: refs.length,
+      references: refs.map((r) => ({
+        ...r,
+        createdAt: r.createdAt.toISOString(),
+      })),
+    });
+  }
+
+  private async searchReferences(userId: string, input: Record<string, unknown>): Promise<string> {
+    const query = String(input.query ?? '').trim();
+    const limit = Math.min(Number(input.limit ?? 10), 50);
+
+    if (!query) {
+      return JSON.stringify({ query, count: 0, references: [] });
+    }
+
+    const refs = await this.prisma.reference.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { authors: { has: query } },
+          { abstract: { contains: query, mode: 'insensitive' } },
+          { keywords: { has: query } },
+          { tags: { has: query } },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        authors: true,
+        year: true,
+        journal: true,
+        doi: true,
+        readingStatus: true,
+        priority: true,
+        tags: true,
+        abstract: true,
+        aiSummary: true,
+      },
+    });
+
+    return JSON.stringify({
+      query,
+      count: refs.length,
+      references: refs,
+    });
+  }
+
+  private async getReferenceDetail(userId: string, input: Record<string, unknown>): Promise<string> {
+    const referenceId = String(input.referenceId ?? '');
+
+    const ref = await this.prisma.reference.findFirst({
+      where: { id: referenceId, userId, deletedAt: null },
+      include: {
+        notes: {
+          where: { deletedAt: null },
+          orderBy: { pageNumber: 'asc' },
+          select: {
+            id: true,
+            pageNumber: true,
+            text: true,
+            color: true,
+            content: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    if (!ref) {
+      return JSON.stringify({ error: '文献不存在' });
+    }
+
+    return JSON.stringify({
+      id: ref.id,
+      title: ref.title,
+      authors: ref.authors,
+      year: ref.year,
+      journal: ref.journal,
+      volume: ref.volume,
+      issue: ref.issue,
+      pages: ref.pages,
+      doi: ref.doi,
+      url: ref.url,
+      abstract: ref.abstract,
+      abstractZh: ref.abstractZh,
+      keywords: ref.keywords,
+      literatureType: ref.literatureType,
+      readingStatus: ref.readingStatus,
+      priority: ref.priority,
+      rating: ref.rating,
+      tags: ref.tags,
+      aiSummary: ref.aiSummary,
+      keyFindings: ref.keyFindings,
+      readCount: ref.readCount,
+      totalReadTime: ref.totalReadTime,
+      notes: ref.notes.map((n) => ({
+        ...n,
+        createdAt: n.createdAt.toISOString(),
+      })),
+    });
+  }
+
+  private async createReference(userId: string, input: Record<string, unknown>): Promise<string> {
+    const title = String(input.title ?? '').trim();
+    const authors = Array.isArray(input.authors) ? input.authors.filter((a): a is string => typeof a === 'string') : [];
+    const year = input.year ? Number(input.year) : undefined;
+    const journal = input.journal ? String(input.journal) : undefined;
+    const doi = input.doi ? String(input.doi) : undefined;
+    const abstract = input.abstract ? String(input.abstract) : undefined;
+    const tags = Array.isArray(input.tags) ? input.tags.filter((t): t is string => typeof t === 'string') : [];
+    const url = input.url ? String(input.url) : undefined;
+
+    if (!title) {
+      return JSON.stringify({ error: '标题不能为空' });
+    }
+
+    const ref = await this.prisma.reference.create({
+      data: {
+        userId,
+        title,
+        authors,
+        year,
+        journal,
+        doi,
+        abstract,
+        tags,
+        url,
+        keywords: [] as any,
+        literatureType: 'JOURNAL_ARTICLE' as any,
+      },
+    });
+
+    return JSON.stringify({
+      success: true,
+      id: ref.id,
+      title: ref.title,
+      message: `文献「${ref.title}」已创建`,
     });
   }
 }

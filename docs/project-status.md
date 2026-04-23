@@ -393,7 +393,7 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | 优先级 | 模块 | 核心工作 |
 |:---|:---|:---|
 | 高 | **笔记系统** | ✅ 已完成：TipTap 编辑器、CRUD、搜索、标签、文件夹树形 UI、AI 工具集成、UI 打磨 |
-| 高 | **文献管理** | Zotero MCP Server 集成、PDF 上传与解析、引用提取 |
+| 高 | **文献管理** | ✅ 已完成：PDF 上传与解析、文献库列表/筛选/搜索、阅读器（PDF.js + 批注）、文件夹树、AI 工具集成、语义检索骨架 |
 | 中 | **工程优化** | 单元测试、E2E 测试、CI/CD、PWA 支持 |
 | 中 | **数据同步** | Yjs CRDT 多设备同步、Electric SQL 实时同步 |
 | 低 | **桌面端** | Tauri 2.x 打包、本地文件系统访问、离线模式 |
@@ -421,8 +421,15 @@ pnpm -F @phd/frontend build → ✅ 零错误
 - [x] 笔记支持创建/编辑/删除/搜索
 - [x] AI 助手可查询笔记（search_notes / get_notes / get_note_detail）
 - [x] 文件夹树形管理 UI
-- [ ] RAG 语义检索（pgvector embedding）
-- [ ] 文献管理模块
+- [x] 文献管理模块数据库迁移（Reference / ReferenceFolder / ReferenceNote）
+- [x] 文献后端 REST API（CRUD + 上传 + 列表 + 搜索 + 状态更新 + 文件夹）
+- [x] 前端 `/references` 文献库页面（列表/筛选/搜索/上传/详情弹窗 + 文件夹树）
+- [x] PDF.js 阅读器 + 高亮批注系统
+- [x] AI 文献工具集成（get_references / search_references / get_reference_detail / create_reference）
+- [x] 语义检索 API（骨架，fallback 到全文搜索）
+- [ ] RAG 语义检索（pgvector embedding，待接入 Embedding API）
+- [ ] 文献 ↔ 任务/笔记/番茄钟联动
+- [ ] DOI 导入 + 引用导出
 
 ---
 
@@ -433,3 +440,4 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | 2026-04-22 | 初始版本：Phase 1 三大模块（任务/日程/番茄钟）完成 |
 | 2026-04-23 | 更新：补充认证系统与 AI 助手模块，修正 Phase 1 完成状态，调整 Phase 2 规划 |
 | 2026-04-24 | Phase 2 笔记系统完成：TipTap 编辑器、CRUD、搜索、标签、文件夹树、AI 工具集成、UI 打磨（收起/ConfirmDialog/卡片精简） |
+| 2026-04-23 | Phase 2 文献管理模块完成：数据库 Schema（Reference/ReferenceFolder/ReferenceNote）、后端 18 个 REST API、前端文献库（列表/筛选/搜索/上传/文件夹树）、PDF.js 阅读器（翻页/缩放/文本选择/高亮批注）、AI 工具（get_references/search_references/get_reference_detail/create_reference）、语义检索骨架、删除手动录入功能 |
