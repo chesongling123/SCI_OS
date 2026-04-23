@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
+import { EmbeddingService } from '../../shared/embedding.service';
 import { TaskStatus } from '@prisma/client';
 
 /**
@@ -91,18 +92,23 @@ export const PHD_OS_TOOLS = [
   },
   {
     name: 'search_notes',
-    description: '通过关键词搜索用户的笔记内容（标题+正文+摘要+标签）',
+    description: '搜索用户的笔记内容。支持两种模式：默认关键词全文搜索；当 semantic=true 时使用语义向量搜索，适合查找概念相关但措辞不同的笔记',
     input_schema: {
       type: 'object' as const,
       properties: {
         query: {
           type: 'string',
-          description: '搜索关键词',
+          description: '搜索关键词或自然语言描述',
         },
         limit: {
           type: 'number',
           description: '返回数量上限，默认 10',
           default: 10,
+        },
+        semantic: {
+          type: 'boolean',
+          description: '是否使用语义搜索（向量相似度），默认 false。当用户描述的是概念、想法、主题而非精确关键词时建议设为 true',
+          default: false,
         },
       },
       required: ['query'],
@@ -211,18 +217,23 @@ export const PHD_OS_TOOLS = [
   },
   {
     name: 'search_references',
-    description: '在用户文献库中搜索文献，匹配标题、作者、摘要、关键词、标签',
+    description: '在用户文献库中搜索文献。支持两种模式：默认关键词全文搜索；当 semantic=true 时使用语义向量搜索，适合查找主题相关、方法类似或领域相近的文献',
     input_schema: {
       type: 'object' as const,
       properties: {
         query: {
           type: 'string',
-          description: '搜索关键词或短语',
+          description: '搜索关键词或自然语言描述',
         },
         limit: {
           type: 'number',
           description: '返回数量上限，默认 10',
           default: 10,
+        },
+        semantic: {
+          type: 'boolean',
+          description: '是否使用语义搜索（向量相似度），默认 false。当用户想查找"类似方法"、"相关主题"、"同一领域"的文献时建议设为 true',
+          default: false,
         },
       },
       required: ['query'],
@@ -296,7 +307,10 @@ export const PHD_OS_TOOLS = [
 export class AiToolsService {
   private readonly logger = new Logger(AiToolsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly embedding: EmbeddingService,
+  ) {}
 
   /**
    * 执行指定工具
@@ -583,11 +597,55 @@ export class AiToolsService {
   private async searchNotes(userId: string, input: Record<string, unknown>): Promise<string> {
     const query = String(input.query ?? '').trim();
     const limit = Math.min(Number(input.limit ?? 10), 50);
+    const semantic = Boolean(input.semantic ?? false);
 
     if (!query) {
       return JSON.stringify({ query, count: 0, notes: [] });
     }
 
+    // 语义搜索模式
+    if (semantic) {
+      const embedding = await this.embedding.embedText(query);
+      if (!embedding) {
+        return JSON.stringify({ query, semantic: true, error: 'Embedding 服务不可用，无法执行语义搜索', count: 0, notes: [] });
+      }
+
+      const vectorStr = `[${embedding.join(',')}]`;
+      const notes = await this.prisma.$queryRaw<Array<{
+        id: string;
+        title: string;
+        plainText: string;
+        summary: string | null;
+        tags: string[];
+        distance: number;
+      }>>`
+        SELECT id, title, plain_text as "plainText", summary, tags,
+               embedding <=> ${vectorStr}::vector AS distance
+        FROM notes
+        WHERE user_id = ${userId}
+          AND deleted_at IS NULL
+          AND is_archived = false
+          AND embedding IS NOT NULL
+        ORDER BY distance ASC
+        LIMIT ${limit}
+      `;
+
+      return JSON.stringify({
+        query,
+        semantic: true,
+        count: notes.length,
+        notes: notes.map((n) => ({
+          id: n.id,
+          title: n.title,
+          preview: n.plainText.slice(0, 200),
+          summary: n.summary,
+          tags: n.tags,
+          similarityScore: Math.max(0, Math.round((1 - n.distance) * 100)),
+        })),
+      });
+    }
+
+    // 全文搜索模式
     const notes = await this.prisma.note.findMany({
       where: {
         userId,
@@ -614,6 +672,7 @@ export class AiToolsService {
 
     return JSON.stringify({
       query,
+      semantic: false,
       count: notes.length,
       notes: notes.map((n) => ({
         id: n.id,
@@ -1032,11 +1091,55 @@ export class AiToolsService {
   private async searchReferences(userId: string, input: Record<string, unknown>): Promise<string> {
     const query = String(input.query ?? '').trim();
     const limit = Math.min(Number(input.limit ?? 10), 50);
+    const semantic = Boolean(input.semantic ?? false);
 
     if (!query) {
       return JSON.stringify({ query, count: 0, references: [] });
     }
 
+    // 语义搜索模式
+    if (semantic) {
+      const embedding = await this.embedding.embedText(query);
+      if (!embedding) {
+        return JSON.stringify({ query, semantic: true, error: 'Embedding 服务不可用，无法执行语义搜索', count: 0, references: [] });
+      }
+
+      const vectorStr = `[${embedding.join(',')}]`;
+      const refs = await this.prisma.$queryRaw<Array<{
+        id: string;
+        title: string;
+        authors: string[];
+        year: number | null;
+        journal: string | null;
+        doi: string | null;
+        abstract: string | null;
+        readingStatus: string;
+        tags: string[];
+        distance: number;
+      }>>`
+        SELECT id, title, authors, year, journal, doi, abstract,
+               reading_status as "readingStatus", tags,
+               embedding <=> ${vectorStr}::vector AS distance
+        FROM references
+        WHERE user_id = ${userId}
+          AND deleted_at IS NULL
+          AND embedding IS NOT NULL
+        ORDER BY distance ASC
+        LIMIT ${limit}
+      `;
+
+      return JSON.stringify({
+        query,
+        semantic: true,
+        count: refs.length,
+        references: refs.map((r) => ({
+          ...r,
+          similarityScore: Math.max(0, Math.round((1 - r.distance) * 100)),
+        })),
+      });
+    }
+
+    // 全文搜索模式
     const refs = await this.prisma.reference.findMany({
       where: {
         userId,
@@ -1068,6 +1171,7 @@ export class AiToolsService {
 
     return JSON.stringify({
       query,
+      semantic: false,
       count: refs.length,
       references: refs,
     });

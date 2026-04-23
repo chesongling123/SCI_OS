@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
+import { EmbeddingService } from '../../shared/embedding.service';
 import { CreateNoteDto, UpdateNoteDto, SearchNoteDto } from './dto';
 import { CreateNoteFolderDto, UpdateNoteFolderDto } from './dto';
 
@@ -7,7 +8,10 @@ import { CreateNoteFolderDto, UpdateNoteFolderDto } from './dto';
 export class NoteService {
   private readonly logger = new Logger(NoteService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly embedding: EmbeddingService,
+  ) {}
 
   /**
    * 获取用户的笔记列表
@@ -84,6 +88,11 @@ export class NoteService {
       },
     });
 
+    // 异步生成语义向量（不阻塞用户响应）
+    this.generateEmbedding(note.id, dto.title, dto.plainText).catch((err) => {
+      this.logger.warn(`笔记 ${note.id} embedding 生成失败: ${err.message}`);
+    });
+
     return {
       ...note,
       createdAt: note.createdAt.toISOString(),
@@ -117,11 +126,60 @@ export class NoteService {
       data,
     });
 
+    // 内容变化时重新生成 embedding
+    if (dto.title !== undefined || dto.plainText !== undefined) {
+      this.generateEmbedding(id, note.title, note.plainText).catch((err) => {
+        this.logger.warn(`笔记 ${id} embedding 更新失败: ${err.message}`);
+      });
+    }
+
     return {
       ...note,
       createdAt: note.createdAt.toISOString(),
       updatedAt: note.updatedAt.toISOString(),
     };
+  }
+
+  /**
+   * 语义搜索笔记（基于向量相似度）
+   */
+  async semanticSearch(userId: string, query: string, limit = 10) {
+    const embedding = await this.embedding.embedText(query);
+    if (!embedding) {
+      this.logger.warn('Embedding 服务不可用，语义搜索降级为全文搜索');
+      return this.search(userId, { q: query, limit });
+    }
+
+    const vectorStr = `[${embedding.join(',')}]`;
+
+    // 使用 pgvector 余弦距离（<=>），值越小越相似
+    const results = await this.prisma.$queryRaw<Array<{
+      id: string;
+      title: string;
+      plainText: string;
+      summary: string | null;
+      tags: string[];
+      distance: number;
+    }>>`
+      SELECT id, title, plain_text as "plainText", summary, tags,
+             embedding <=> ${vectorStr}::vector AS distance
+      FROM notes
+      WHERE user_id = ${userId}
+        AND deleted_at IS NULL
+        AND is_archived = false
+        AND embedding IS NOT NULL
+      ORDER BY distance ASC
+      LIMIT ${limit}
+    `;
+
+    return results.map((r) => ({
+      id: r.id,
+      title: r.title,
+      plainText: r.plainText.slice(0, 200),
+      summary: r.summary,
+      tags: r.tags,
+      similarityScore: Math.max(0, Math.round((1 - r.distance) * 100)), // 转为 0-100 分
+    }));
   }
 
   /**
@@ -270,5 +328,21 @@ export class NoteService {
       data: { deletedAt: new Date() },
     });
     return { id, deleted: true };
+  }
+
+  // ========== 语义向量生成 ==========
+
+  private async generateEmbedding(noteId: string, title: string, plainText: string) {
+    const textToEmbed = `${title}\n${plainText}`.slice(0, 4000); // 限制长度避免超限
+    const embedding = await this.embedding.embedText(textToEmbed);
+    if (!embedding) return;
+
+    const vectorStr = `[${embedding.join(',')}]`;
+    await this.prisma.$executeRaw`
+      UPDATE notes
+      SET embedding = ${vectorStr}::vector
+      WHERE id = ${noteId}
+    `;
+    this.logger.debug(`笔记 ${noteId} embedding 已生成`);
   }
 }

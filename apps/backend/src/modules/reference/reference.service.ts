@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
+import { EmbeddingService } from '../../shared/embedding.service';
 import { CreateReferenceDto, UpdateReferenceDto, UpdateReadingStatusDto } from './dto';
 
 @Injectable()
 export class ReferenceService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(ReferenceService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly embedding: EmbeddingService,
+  ) {}
 
   /**
    * 获取文献列表（支持筛选和分页）
@@ -81,7 +87,7 @@ export class ReferenceService {
    * 创建文献（手动录入）
    */
   async create(userId: string, dto: CreateReferenceDto) {
-    return this.prisma.reference.create({
+    const ref = await this.prisma.reference.create({
       data: {
         title: dto.title,
         authors: dto.authors ?? [],
@@ -101,6 +107,19 @@ export class ReferenceService {
         userId,
       },
     });
+
+    // 异步生成语义向量
+    this.generateEmbedding(
+      ref.id,
+      dto.title,
+      dto.abstract,
+      dto.authors ?? [],
+      dto.keywords ?? [],
+    ).catch((err) => {
+      this.logger.warn(`文献 ${ref.id} embedding 生成失败: ${err.message}`);
+    });
+
+    return ref;
   }
 
   /**
@@ -129,10 +148,70 @@ export class ReferenceService {
     if (dto.tags !== undefined) data.tags = dto.tags;
     if (dto.folderId !== undefined) data.folderId = dto.folderId;
 
-    return this.prisma.reference.update({
+    const ref = await this.prisma.reference.update({
       where: { id },
       data,
     });
+
+    // 内容变化时重新生成 embedding
+    if (dto.title !== undefined || dto.abstract !== undefined || dto.keywords !== undefined) {
+      this.generateEmbedding(
+        id,
+        ref.title,
+        ref.abstract,
+        ref.authors,
+        ref.keywords,
+      ).catch((err) => {
+        this.logger.warn(`文献 ${id} embedding 更新失败: ${err.message}`);
+      });
+    }
+
+    return ref;
+  }
+
+  /**
+   * 语义搜索文献（基于向量相似度）
+   */
+  async semanticSearch(userId: string, query: string, limit = 10) {
+    const embedding = await this.embedding.embedText(query);
+    if (!embedding) {
+      this.logger.warn('Embedding 服务不可用，语义搜索降级为全文搜索');
+      return this.findAll(userId, { q: query, limit });
+    }
+
+    const vectorStr = `[${embedding.join(',')}]`;
+
+    const results = await this.prisma.$queryRaw<Array<{
+      id: string;
+      title: string;
+      authors: string[];
+      year: number | null;
+      journal: string | null;
+      doi: string | null;
+      abstract: string | null;
+      readingStatus: string;
+      tags: string[];
+      distance: number;
+    }>>`
+      SELECT id, title, authors, year, journal, doi, abstract,
+             reading_status as "readingStatus", tags,
+             embedding <=> ${vectorStr}::vector AS distance
+      FROM references
+      WHERE user_id = ${userId}
+        AND deleted_at IS NULL
+        AND embedding IS NOT NULL
+      ORDER BY distance ASC
+      LIMIT ${limit}
+    `;
+
+    return {
+      data: results.map((r) => ({
+        ...r,
+        similarityScore: Math.max(0, Math.round((1 - r.distance) * 100)),
+      })),
+      nextCursor: null,
+      hasMore: false,
+    };
   }
 
   /**
@@ -283,5 +362,31 @@ export class ReferenceService {
     if (!reference) {
       throw new NotFoundException(`文献 ${id} 不存在或已被删除`);
     }
+  }
+
+  private async generateEmbedding(
+    referenceId: string,
+    title: string,
+    abstract: string | null,
+    authors: string[],
+    keywords: string[],
+  ) {
+    const parts = [
+      title,
+      ...(authors ?? []),
+      ...(keywords ?? []),
+      abstract ?? '',
+    ];
+    const textToEmbed = parts.filter(Boolean).join('\n').slice(0, 4000);
+    const embedding = await this.embedding.embedText(textToEmbed);
+    if (!embedding) return;
+
+    const vectorStr = `[${embedding.join(',')}]`;
+    await this.prisma.$executeRaw`
+      UPDATE references
+      SET embedding = ${vectorStr}::vector
+      WHERE id = ${referenceId}
+    `;
+    this.logger.debug(`文献 ${referenceId} embedding 已生成`);
   }
 }

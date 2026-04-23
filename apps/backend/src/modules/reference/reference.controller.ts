@@ -177,21 +177,18 @@ export class ReferenceController {
   // ========== 文件夹 ==========
 
   @Get('semantic-search')
-  @ApiOperation({ summary: '语义检索文献（自然语言）' })
+  @ApiOperation({ summary: '语义检索文献（基于 Embedding 向量相似度）' })
   @ApiResponse({ status: 200, description: '返回语义相关文献列表' })
   semanticSearch(
     @Request() req: { user: { id: string } },
     @Query('q') q: string,
     @Query('limit') limit?: string,
   ) {
-    // TODO: 接入真正的 embedding 语义检索
-    // 当前 fallback 到全文搜索
-    return this.referenceService.findAll(req.user.id, {
+    return this.referenceService.semanticSearch(
+      req.user.id,
       q,
-      limit: limit ? parseInt(limit, 10) : 10,
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-    });
+      limit ? parseInt(limit, 10) : 10,
+    );
   }
 
   @Get('folders/all')

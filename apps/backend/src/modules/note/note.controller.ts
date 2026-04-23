@@ -33,10 +33,24 @@ export class NoteController {
   }
 
   @Get('search')
-  @ApiOperation({ summary: '搜索笔记' })
+  @ApiOperation({ summary: '搜索笔记（全文匹配）' })
   @ApiResponse({ status: 200, description: '返回搜索结果' })
   search(@Request() req: { user: { id: string } }, @Query() dto: SearchNoteDto) {
     return this.noteService.search(req.user.id, dto);
+  }
+
+  @Post('search/semantic')
+  @ApiOperation({ summary: '语义搜索笔记（基于 Embedding 向量相似度）' })
+  @ApiResponse({ status: 200, description: '返回语义相似度排序结果' })
+  semanticSearch(
+    @Request() req: { user: { id: string } },
+    @Body() body: { query: string; limit?: number },
+  ) {
+    return this.noteService.semanticSearch(
+      req.user.id,
+      body.query,
+      body.limit ?? 10,
+    );
   }
 
   @Get(':id')

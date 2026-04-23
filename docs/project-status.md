@@ -1,7 +1,7 @@
 # PhD_OS 项目状态追踪
 
 > **文档类型**: 项目进度备忘  
-> **最后更新**: 2026-04-24  
+> **最后更新**: 2026-04-25  
 > **当前阶段**: ✅ Phase 1 MVP 已完成，进入 Phase 2 扩展
 
 ---
@@ -427,7 +427,7 @@ pnpm -F @phd/frontend build → ✅ 零错误
 - [x] PDF.js 阅读器 + 高亮批注系统
 - [x] AI 文献工具集成（get_references / search_references / get_reference_detail / create_reference）
 - [x] 语义检索 API（骨架，fallback 到全文搜索）
-- [ ] RAG 语义检索（pgvector embedding，待接入 Embedding API）
+- [x] RAG 语义检索（pgvector embedding，已接入豆包 Ark Embedding API）
 - [ ] 文献 ↔ 任务/笔记/番茄钟联动
 - [ ] DOI 导入 + 引用导出
 

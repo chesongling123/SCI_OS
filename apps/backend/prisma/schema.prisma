@@ -147,7 +147,7 @@ model Note {
   folderId   String?   // 所属文件夹（Phase 2 迭代3启用）
   isPinned   Boolean   @default(false)
   isArchived Boolean   @default(false)
-  embedding  Unsupported("vector(768)")? // 预留：语义向量
+  embedding  Unsupported("vector(1024)")? // 预留：语义向量（豆包 Embedding 1024 维）
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime? // 软删除
