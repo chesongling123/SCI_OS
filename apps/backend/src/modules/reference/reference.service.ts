@@ -85,6 +85,17 @@ export class ReferenceService {
             createdAt: true,
           },
         },
+        linkedNotes: {
+          where: { deletedAt: null },
+          orderBy: { updatedAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            plainText: true,
+            tags: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 

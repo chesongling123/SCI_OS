@@ -37,4 +37,9 @@ export class UpdateNoteDto {
   @IsOptional()
   @IsBoolean()
   isArchived?: boolean;
+
+  @ApiPropertyOptional({ description: '关联文献 ID' })
+  @IsOptional()
+  @IsString()
+  referenceId?: string;
 }

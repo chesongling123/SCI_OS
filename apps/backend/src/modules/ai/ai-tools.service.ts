@@ -130,7 +130,7 @@ export const PHD_OS_TOOLS = [
   },
   {
     name: 'create_note',
-    description: '为用户创建一篇新笔记，将重要信息保存到笔记库中',
+    description: '为用户创建一篇新笔记，将重要信息保存到笔记库中。可关联到特定文献，方便后续按文献查找笔记',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -151,13 +151,17 @@ export const PHD_OS_TOOLS = [
           type: 'string',
           description: '所属文件夹 ID，可选',
         },
+        referenceId: {
+          type: 'string',
+          description: '关联文献 ID，如这篇笔记是某篇论文的读书笔记则传入',
+        },
       },
       required: ['title', 'content'],
     },
   },
   {
     name: 'update_note',
-    description: '更新或追加现有笔记的内容',
+    description: '更新或追加现有笔记的内容，也可修改关联的文献',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -182,6 +186,10 @@ export const PHD_OS_TOOLS = [
           type: 'array',
           items: { type: 'string' },
           description: '新标签列表，不修改则留空',
+        },
+        referenceId: {
+          type: 'string',
+          description: '关联文献 ID，如需修改关联则传入',
         },
       },
       required: ['noteId'],
@@ -968,6 +976,7 @@ export class AiToolsService {
     const contentText = String(input.content ?? '').trim();
     const tags = Array.isArray(input.tags) ? input.tags.filter((t): t is string => typeof t === 'string') : [];
     const folderId = input.folderId ? String(input.folderId) : null;
+    const referenceId = input.referenceId ? String(input.referenceId) : null;
 
     if (!title || !contentText) {
       return JSON.stringify({ error: '标题和内容不能为空' });
@@ -983,6 +992,10 @@ export class AiToolsService {
         plainText: contentText,
         tags,
         folderId,
+        referenceId,
+      },
+      include: {
+        reference: { select: { id: true, title: true } },
       },
     });
 
@@ -990,7 +1003,10 @@ export class AiToolsService {
       success: true,
       id: note.id,
       title: note.title,
-      message: `笔记「${note.title}」已创建`,
+      reference: note.reference,
+      message: referenceId
+        ? `笔记「${note.title}」已创建，关联文献「${note.reference?.title ?? ''}」`
+        : `笔记「${note.title}」已创建`,
     });
   }
 
@@ -1000,6 +1016,7 @@ export class AiToolsService {
     const newContentText = input.content ? String(input.content).trim() : undefined;
     const append = Boolean(input.append ?? false);
     const newTags = Array.isArray(input.tags) ? input.tags.filter((t): t is string => typeof t === 'string') : undefined;
+    const newReferenceId = input.referenceId !== undefined ? String(input.referenceId) : undefined;
 
     const existing = await this.prisma.note.findFirst({
       where: { id: noteId, userId, deletedAt: null },
@@ -1032,15 +1049,23 @@ export class AiToolsService {
       data.tags = newTags;
     }
 
+    if (newReferenceId !== undefined) {
+      data.referenceId = newReferenceId || null;
+    }
+
     const note = await this.prisma.note.update({
       where: { id: noteId },
       data,
+      include: {
+        reference: { select: { id: true, title: true } },
+      },
     });
 
     return JSON.stringify({
       success: true,
       id: note.id,
       title: note.title,
+      reference: note.reference,
       message: `笔记「${note.title}」已更新`,
     });
   }
@@ -1209,6 +1234,17 @@ export class AiToolsService {
             createdAt: true,
           },
         },
+        linkedNotes: {
+          where: { deletedAt: null },
+          orderBy: { updatedAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            plainText: true,
+            tags: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 
@@ -1246,6 +1282,10 @@ export class AiToolsService {
       tasks: ref.tasks.map((t) => ({
         ...t,
         createdAt: t.createdAt.toISOString(),
+      })),
+      linkedNotes: ref.linkedNotes.map((n) => ({
+        ...n,
+        updatedAt: n.updatedAt.toISOString(),
       })),
     });
   }

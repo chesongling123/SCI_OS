@@ -165,6 +165,7 @@ export interface CreateNoteDto {
   plainText: string;
   tags?: string[];
   folderId?: string | null;
+  referenceId?: string; // 关联文献 ID
 }
 
 export interface UpdateNoteDto {
@@ -173,6 +174,7 @@ export interface UpdateNoteDto {
   plainText?: string;
   tags?: string[];
   folderId?: string | null;
+  referenceId?: string; // 关联文献 ID
   isPinned?: boolean;
   isArchived?: boolean;
 }
@@ -326,6 +328,13 @@ export interface ReferenceResponseDto {
     priority: number;
     pomodoroCount: number;
     createdAt: string;
+  }>;
+  linkedNotes?: Array<{
+    id: string;
+    title: string;
+    plainText: string;
+    tags: string[];
+    updatedAt: string;
   }>;
   createdAt: string;
   updatedAt: string;

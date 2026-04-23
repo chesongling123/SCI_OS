@@ -16,8 +16,8 @@ export class NoteService {
   /**
    * 获取用户的笔记列表
    */
-  async findAll(userId: string, options: { folderId?: string; tag?: string; archived?: boolean; limit?: number } = {}) {
-    const { folderId, tag, archived = false, limit = 50 } = options;
+  async findAll(userId: string, options: { folderId?: string; tag?: string; archived?: boolean; referenceId?: string; limit?: number } = {}) {
+    const { folderId, tag, archived = false, referenceId, limit = 50 } = options;
 
     const notes = await this.prisma.note.findMany({
       where: {
@@ -26,23 +26,17 @@ export class NoteService {
         isArchived: archived,
         ...(folderId ? { folderId } : { folderId: null }),
         ...(tag ? { tags: { has: tag } } : {}),
+        ...(referenceId ? { referenceId } : {}),
       },
       orderBy: [
         { isPinned: 'desc' },
         { updatedAt: 'desc' },
       ],
       take: limit,
-      select: {
-        id: true,
-        title: true,
-        plainText: true,
-        summary: true,
-        tags: true,
-        folderId: true,
-        isPinned: true,
-        isArchived: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
       },
     });
 
@@ -60,6 +54,11 @@ export class NoteService {
   async findOne(userId: string, id: string) {
     const note = await this.prisma.note.findFirst({
       where: { id, userId, deletedAt: null },
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
+      },
     });
 
     if (!note) {
@@ -85,6 +84,12 @@ export class NoteService {
         plainText: dto.plainText,
         tags: dto.tags ?? [],
         folderId: dto.folderId ?? null,
+        referenceId: dto.referenceId ?? null,
+      },
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
       },
     });
 
@@ -118,12 +123,18 @@ export class NoteService {
     if (dto.plainText !== undefined) data.plainText = dto.plainText;
     if (dto.tags !== undefined) data.tags = dto.tags;
     if (dto.folderId !== undefined) data.folderId = dto.folderId;
+    if (dto.referenceId !== undefined) data.referenceId = dto.referenceId ?? null;
     if (dto.isPinned !== undefined) data.isPinned = dto.isPinned;
     if (dto.isArchived !== undefined) data.isArchived = dto.isArchived;
 
     const note = await this.prisma.note.update({
       where: { id },
       data,
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
+      },
     });
 
     // 内容变化时重新生成 embedding
@@ -229,17 +240,10 @@ export class NoteService {
       },
       orderBy: { updatedAt: 'desc' },
       take: limit,
-      select: {
-        id: true,
-        title: true,
-        plainText: true,
-        summary: true,
-        tags: true,
-        folderId: true,
-        isPinned: true,
-        isArchived: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        reference: {
+          select: { id: true, title: true },
+        },
       },
     });
 

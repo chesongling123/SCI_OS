@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
-import { FileText, Save, Loader2 } from 'lucide-react';
+import { FileText, Save, Loader2, BookOpen } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { authHeaders } from '../../lib/api';
 import { NoteSidebar } from './NoteSidebar';
 import { NoteEditor } from './NoteEditor';
 import { FolderTree } from './FolderTree';
+import { useReferences } from '../../hooks/useReferences';
 import type { NoteListItem } from './types/note.types';
 
 // 空笔记的默认内容（Tiptap JSON）
@@ -20,6 +22,7 @@ interface EditingNote {
   plainText: string;
   tags: string[];
   folderId: string | null;
+  referenceId: string | null;
 }
 
 interface NoteFolder {
@@ -29,6 +32,7 @@ interface NoteFolder {
 }
 
 export default function NotePage() {
+  const location = useLocation();
   const [notes, setNotes] = useState<NoteListItem[]>([]);
   const [folders, setFolders] = useState<NoteFolder[]>([]);
   const [activeNote, setActiveNote] = useState<EditingNote | null>(null);
@@ -44,6 +48,23 @@ export default function NotePage() {
   // 侧边栏收起状态
   const [isFolderCollapsed, setIsFolderCollapsed] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // 接收从文献页跳转过来的预填信息
+  useEffect(() => {
+    const state = location.state as { prefillReferenceId?: string; prefillTitle?: string } | null;
+    if (state?.prefillReferenceId) {
+      setActiveNote({
+        id: null,
+        title: state.prefillTitle ?? '',
+        content: EMPTY_CONTENT,
+        plainText: '',
+        tags: ['读书笔记'],
+        folderId: null,
+        referenceId: state.prefillReferenceId,
+      });
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // 加载笔记列表
   const loadNotes = useCallback(async () => {
@@ -114,6 +135,7 @@ export default function NotePage() {
       plainText: '',
       tags: [],
       folderId: activeFolderId,
+      referenceId: null,
     });
   }, [activeFolderId]);
 
@@ -126,6 +148,7 @@ export default function NotePage() {
       plainText: note.plainText,
       tags: note.tags,
       folderId: note.folderId,
+      referenceId: note.referenceId ?? null,
     });
     fetch(`/api/v1/notes/${note.id}`, { headers: authHeaders() })
       .then((res) => res.json())
@@ -137,6 +160,7 @@ export default function NotePage() {
           plainText: detail.plainText,
           tags: detail.tags,
           folderId: detail.folderId,
+          referenceId: detail.referenceId ?? null,
         });
       })
       .catch((err) => console.error('获取笔记详情失败:', err));
@@ -154,6 +178,7 @@ export default function NotePage() {
         plainText: activeNote.plainText,
         tags: activeNote.tags,
         folderId: activeNote.folderId,
+        referenceId: activeNote.referenceId,
       };
 
       let res: Response;
@@ -404,7 +429,7 @@ export default function NotePage() {
               </button>
             </div>
 
-            {/* 标签栏 */}
+            {/* 标签栏 + 关联文献 */}
             <div className="px-4 py-2 border-b flex items-center gap-2 flex-wrap" style={{ borderColor: 'var(--glass-border)' }}>
               {activeNote.tags.map((tag, index) => (
                 <span
@@ -445,6 +470,12 @@ export default function NotePage() {
                   }
                 }}
               />
+              <div className="ml-auto">
+                <ReferenceSelect
+                  value={activeNote.referenceId ?? ''}
+                  onChange={(refId) => setActiveNote((prev) => (prev ? { ...prev, referenceId: refId || null } : null))}
+                />
+              </div>
             </div>
 
             {/* 编辑器 */}
@@ -482,6 +513,32 @@ export default function NotePage() {
         confirmText="删除"
         destructive
       />
+    </div>
+  );
+}
+
+// ========== 文献选择器（笔记编辑器内用） ==========
+
+function ReferenceSelect({ value, onChange }: { value: string; onChange: (refId: string) => void }) {
+  const { data: refsData } = useReferences({ limit: 100 });
+  const references = refsData?.data ?? [];
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <BookOpen className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="text-xs bg-transparent outline-none cursor-pointer"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        <option value="">不关联文献</option>
+        {references.map((ref) => (
+          <option key={ref.id} value={ref.id}>
+            {ref.title}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

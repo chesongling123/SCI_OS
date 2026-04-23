@@ -6,6 +6,8 @@ export interface Note {
   summary: string | null;
   tags: string[];
   folderId: string | null;
+  referenceId: string | null;
+  reference?: { id: string; title: string } | null;
   isPinned: boolean;
   isArchived: boolean;
   createdAt: string;
@@ -19,6 +21,8 @@ export interface NoteListItem {
   summary: string | null;
   tags: string[];
   folderId: string | null;
+  referenceId: string | null;
+  reference?: { id: string; title: string } | null;
   isPinned: boolean;
   isArchived: boolean;
   createdAt: string;

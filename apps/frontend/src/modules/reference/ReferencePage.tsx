@@ -421,6 +421,7 @@ function ReferenceDetailDialog({
   const navigate = useNavigate();
   const { data: fullRef } = useReference(ref.id);
   const linkedTasks = fullRef?.tasks ?? [];
+  const linkedNotes = fullRef?.linkedNotes ?? [];
 
   const handleCreateTask = () => {
     onClose();
@@ -594,6 +595,51 @@ function ReferenceDetailDialog({
                   {task.pomodoroCount > 0 && (
                     <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                       🍅 × {task.pomodoroCount}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 关联笔记 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">关联笔记</h3>
+            <button
+              onClick={() => {
+                onClose();
+                navigate('/notes', { state: { prefillReferenceId: ref.id, prefillTitle: `读书笔记：${ref.title}` } });
+              }}
+              className="text-xs px-2 py-1 rounded-md transition-all"
+              style={{
+                background: 'var(--glass-bg-hover)',
+                border: '1px solid var(--glass-border)',
+                color: 'var(--text-muted)',
+              }}
+            >
+              + 写读书笔记
+            </button>
+          </div>
+          {linkedNotes.length === 0 ? (
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>暂无关联笔记</p>
+          ) : (
+            <div className="space-y-1.5">
+              {linkedNotes.map((note) => (
+                <div
+                  key={note.id}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                  style={{
+                    background: 'var(--glass-bg-hover)',
+                    border: '1px solid var(--glass-border)',
+                  }}
+                >
+                  <FileText className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="flex-1 truncate">{note.title}</span>
+                  {note.tags.length > 0 && (
+                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                      {note.tags.slice(0, 2).join(', ')}
                     </span>
                   )}
                 </div>

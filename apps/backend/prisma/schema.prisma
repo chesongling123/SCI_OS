@@ -145,6 +145,7 @@ model Note {
   summary    String?   // LLM 生成的内容摘要
   tags       String[]  @default([]) // PostgreSQL 文本数组
   folderId   String?   // 所属文件夹（Phase 2 迭代3启用）
+  referenceId String?  // 关联文献 ID（Phase 2 阶段2）
   isPinned   Boolean   @default(false)
   isArchived Boolean   @default(false)
   embedding  Unsupported("vector(1024)")? // 预留：语义向量（豆包 Embedding 1024 维）
@@ -154,9 +155,11 @@ model Note {
 
   // 关联
   user User @relation(fields: [userId], references: [id])
+  reference Reference? @relation(fields: [referenceId], references: [id])
 
   @@index([userId, deletedAt])
   @@index([userId, isPinned, isArchived, updatedAt(sort: Desc)])
+  @@index([referenceId])
   @@map("notes")
 }
 
@@ -252,6 +255,7 @@ model Reference {
 
   // 关联
   notes          ReferenceNote[]
+  linkedNotes    Note[]           // 关联的系统笔记（非 PDF 批注）
   tasks          Task[]
   pomodoroSessions PomodoroSession[]
 

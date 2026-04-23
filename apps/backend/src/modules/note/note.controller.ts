@@ -18,17 +18,20 @@ export class NoteController {
   @ApiQuery({ name: 'folderId', required: false, description: '按文件夹筛选' })
   @ApiQuery({ name: 'tag', required: false, description: '按标签筛选' })
   @ApiQuery({ name: 'archived', required: false, description: '是否包含归档笔记', type: 'boolean' })
+  @ApiQuery({ name: 'referenceId', required: false, description: '按关联文献 ID 筛选' })
   @ApiResponse({ status: 200, description: '返回笔记列表' })
   findAll(
     @Request() req: { user: { id: string } },
     @Query('folderId') folderId?: string,
     @Query('tag') tag?: string,
     @Query('archived') archived?: string,
+    @Query('referenceId') referenceId?: string,
   ) {
     return this.noteService.findAll(req.user.id, {
       folderId,
       tag,
       archived: archived === 'true',
+      referenceId,
     });
   }
 

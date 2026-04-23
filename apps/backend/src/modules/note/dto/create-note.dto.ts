@@ -24,4 +24,9 @@ export class CreateNoteDto {
   @IsOptional()
   @IsString()
   folderId?: string;
+
+  @ApiPropertyOptional({ description: '关联文献 ID' })
+  @IsOptional()
+  @IsString()
+  referenceId?: string;
 }
