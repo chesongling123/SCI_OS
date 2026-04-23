@@ -29,6 +29,8 @@ model User {
   events           Event[]
   tasks            Task[]
   pomodoroSessions PomodoroSession[]
+  notes            Note[]
+  noteFolders      NoteFolder[]
 
   @@map("users")
 }
@@ -124,9 +126,52 @@ model PomodoroSession {
 }
 
 // ============================================
-// Phase 2 预留（笔记/文献/AI 对话）
+// 笔记模块（Phase 2）
 // ============================================
-// model Note { ... }
+model Note {
+  id         String    @id @default(cuid())
+  userId     String
+  title      String
+  content    Json      // Tiptap JSON 文档结构
+  plainText  String    @default("") // 纯文本，用于全文搜索
+  summary    String?   // LLM 生成的内容摘要
+  tags       String[]  @default([]) // PostgreSQL 文本数组
+  folderId   String?   // 所属文件夹（Phase 2 迭代3启用）
+  isPinned   Boolean   @default(false)
+  isArchived Boolean   @default(false)
+  embedding  Unsupported("vector(768)")? // 预留：语义向量
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime? // 软删除
+
+  // 关联
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, deletedAt])
+  @@index([userId, isPinned, isArchived, updatedAt(sort: Desc)])
+  @@map("notes")
+}
+
+model NoteFolder {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  parentId  String?   // 自引用，支持嵌套（Phase 2 迭代3启用）
+  sortOrder Float     @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // 关联
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, parentId])
+  @@map("note_folders")
+}
+
+// ============================================
+// Phase 2 预留（文献/AI 对话）
+// ============================================
 // model Reference { ... }
 // model AiConversation { ... }
 // model AiMessage { ... }

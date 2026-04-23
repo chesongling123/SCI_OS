@@ -15,7 +15,6 @@ interface AiMessageBubbleProps {
 export function AiMessageBubble({ message }: AiMessageBubbleProps) {
   const isUser = message.role === 'user';
   const isError = message.status === 'error';
-  const isComplete = message.status === 'complete';
   const isStreaming = message.status === 'streaming';
 
   return (

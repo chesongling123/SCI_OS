@@ -71,6 +71,116 @@ export const PHD_OS_TOOLS = [
       properties: {},
     },
   },
+  {
+    name: 'get_notes',
+    description: '获取用户的笔记列表，支持按标签筛选',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        tag: {
+          type: 'string',
+          description: '按标签筛选，不传则返回所有笔记',
+        },
+        limit: {
+          type: 'number',
+          description: '返回数量上限，默认 20',
+          default: 20,
+        },
+      },
+    },
+  },
+  {
+    name: 'search_notes',
+    description: '通过关键词搜索用户的笔记内容（标题+正文+摘要+标签）',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: {
+          type: 'string',
+          description: '搜索关键词',
+        },
+        limit: {
+          type: 'number',
+          description: '返回数量上限，默认 10',
+          default: 10,
+        },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'get_note_detail',
+    description: '获取单篇笔记的完整内容，用于深度分析或引用',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        noteId: {
+          type: 'string',
+          description: '笔记 ID',
+        },
+      },
+      required: ['noteId'],
+    },
+  },
+  {
+    name: 'create_note',
+    description: '为用户创建一篇新笔记，将重要信息保存到笔记库中',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: {
+          type: 'string',
+          description: '笔记标题，简洁概括内容',
+        },
+        content: {
+          type: 'string',
+          description: '笔记正文内容，支持 Markdown 格式',
+        },
+        tags: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '标签列表，帮助分类和检索',
+        },
+        folderId: {
+          type: 'string',
+          description: '所属文件夹 ID，可选',
+        },
+      },
+      required: ['title', 'content'],
+    },
+  },
+  {
+    name: 'update_note',
+    description: '更新或追加现有笔记的内容',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        noteId: {
+          type: 'string',
+          description: '要更新的笔记 ID',
+        },
+        title: {
+          type: 'string',
+          description: '新标题，不修改则留空',
+        },
+        content: {
+          type: 'string',
+          description: '新正文内容，不修改则留空',
+        },
+        append: {
+          type: 'boolean',
+          description: '是否追加到现有内容末尾，默认 false（覆盖）',
+          default: false,
+        },
+        tags: {
+          type: 'array',
+          items: { type: 'string' },
+          description: '新标签列表，不修改则留空',
+        },
+      },
+      required: ['noteId'],
+    },
+  },
 ];
 
 /**
@@ -99,6 +209,16 @@ export class AiToolsService {
           return await this.getPomodoroStats(userId, input);
         case 'get_today_summary':
           return await this.getTodaySummary(userId);
+        case 'get_notes':
+          return await this.getNotes(userId, input);
+        case 'search_notes':
+          return await this.searchNotes(userId, input);
+        case 'get_note_detail':
+          return await this.getNoteDetail(userId, input);
+        case 'create_note':
+          return await this.createNote(userId, input);
+        case 'update_note':
+          return await this.updateNote(userId, input);
         default:
           throw new Error(`未知工具: ${name}`);
       }
@@ -306,6 +426,448 @@ export class AiToolsService {
         })),
       },
       pomodoro: JSON.parse(pomodoro),
+    });
+  }
+
+  // ===== 笔记工具 =====
+
+  private async getNotes(userId: string, input: Record<string, unknown>): Promise<string> {
+    const tag = input.tag as string | undefined;
+    const limit = Math.min(Number(input.limit ?? 20), 50);
+
+    const notes = await this.prisma.note.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        isArchived: false,
+        ...(tag ? { tags: { has: tag } } : {}),
+      },
+      orderBy: [{ isPinned: 'desc' }, { updatedAt: 'desc' }],
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        plainText: true,
+        summary: true,
+        tags: true,
+        isPinned: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return JSON.stringify({
+      count: notes.length,
+      notes: notes.map((n) => ({
+        ...n,
+        preview: n.plainText.slice(0, 150),
+        createdAt: n.createdAt.toISOString(),
+        updatedAt: n.updatedAt.toISOString(),
+      })),
+    });
+  }
+
+  private async searchNotes(userId: string, input: Record<string, unknown>): Promise<string> {
+    const query = String(input.query ?? '').trim();
+    const limit = Math.min(Number(input.limit ?? 10), 50);
+
+    if (!query) {
+      return JSON.stringify({ query, count: 0, notes: [] });
+    }
+
+    const notes = await this.prisma.note.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        isArchived: false,
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { plainText: { contains: query, mode: 'insensitive' } },
+          { summary: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        plainText: true,
+        summary: true,
+        tags: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return JSON.stringify({
+      query,
+      count: notes.length,
+      notes: notes.map((n) => ({
+        id: n.id,
+        title: n.title,
+        preview: n.plainText.slice(0, 200),
+        summary: n.summary,
+        tags: n.tags,
+        updatedAt: n.updatedAt.toISOString(),
+      })),
+    });
+  }
+
+  private async getNoteDetail(userId: string, input: Record<string, unknown>): Promise<string> {
+    const noteId = String(input.noteId ?? '');
+
+    const note = await this.prisma.note.findFirst({
+      where: { id: noteId, userId, deletedAt: null },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        plainText: true,
+        summary: true,
+        tags: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!note) {
+      return JSON.stringify({ error: '笔记不存在' });
+    }
+
+    return JSON.stringify({
+      id: note.id,
+      title: note.title,
+      content: note.content,
+      plainText: note.plainText,
+      summary: note.summary,
+      tags: note.tags,
+      createdAt: note.createdAt.toISOString(),
+      updatedAt: note.updatedAt.toISOString(),
+    });
+  }
+
+  /**
+   * 将 Markdown 文本转为 Tiptap JSON
+   * 支持：标题、加粗、斜体、代码、代码块、无序列表、有序列表、任务列表、引用、表格
+   */
+  private markdownToTiptap(text: string): Record<string, unknown> {
+    const lines = text.split('\n');
+    const content: Record<string, unknown>[] = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      if (trimmed.length === 0) {
+        i++;
+        continue;
+      }
+
+      // 代码块 ```
+      if (trimmed.startsWith('```')) {
+        const lang = trimmed.slice(3).trim();
+        const codeLines: string[] = [];
+        i++;
+        while (i < lines.length && !lines[i].trim().startsWith('```')) {
+          codeLines.push(lines[i]);
+          i++;
+        }
+        i++; // 跳过结束的 ```
+        content.push({
+          type: 'codeBlock',
+          attrs: lang ? { language: lang } : {},
+          content: [{ type: 'text', text: codeLines.join('\n') }],
+        });
+        continue;
+      }
+
+      // 标题
+      const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        content.push({
+          type: 'heading',
+          attrs: { level },
+          content: this.parseInlineMarks(headingMatch[2]),
+        });
+        i++;
+        continue;
+      }
+
+      // 表格
+      if (trimmed.includes('|') && i + 1 < lines.length && lines[i + 1].trim().includes('|') && lines[i + 1].trim().match(/[:\-]/)) {
+        const rows: string[][] = [];
+        // 表头
+        rows.push(trimmed.split('|').map((c) => c.trim()).filter((c) => c.length > 0));
+        i++; // 跳过分隔行
+        i++;
+        // 数据行
+        while (i < lines.length && lines[i].trim().includes('|')) {
+          rows.push(lines[i].trim().split('|').map((c) => c.trim()).filter((c) => c.length > 0));
+          i++;
+        }
+        const tableContent: Record<string, unknown>[] = [];
+        if (rows.length > 0) {
+          tableContent.push({
+            type: 'tableRow',
+            content: rows[0].map((cell) => ({
+              type: 'tableHeader',
+              content: [{ type: 'paragraph', content: this.parseInlineMarks(cell) }],
+            })),
+          });
+          for (let r = 1; r < rows.length; r++) {
+            tableContent.push({
+              type: 'tableRow',
+              content: rows[r].map((cell) => ({
+                type: 'tableCell',
+                content: [{ type: 'paragraph', content: this.parseInlineMarks(cell) }],
+              })),
+            });
+          }
+        }
+        content.push({ type: 'table', content: tableContent });
+        continue;
+      }
+
+      // 任务列表
+      const taskMatch = trimmed.match(/^[-*+]\s+\[([ xX])\]\s+(.+)$/);
+      if (taskMatch) {
+        const taskItems: Record<string, unknown>[] = [];
+        while (i < lines.length) {
+          const ti = lines[i].trim();
+          const tm = ti.match(/^[-*+]\s+\[([ xX])\]\s+(.+)$/);
+          if (tm) {
+            taskItems.push({
+              type: 'taskItem',
+              attrs: { checked: tm[1] === 'x' || tm[1] === 'X' },
+              content: [{
+                type: 'paragraph',
+                content: this.parseInlineMarks(tm[2]),
+              }],
+            });
+            i++;
+          } else if (ti.length === 0) {
+            i++;
+          } else {
+            break;
+          }
+        }
+        content.push({ type: 'taskList', content: taskItems });
+        continue;
+      }
+
+      // 无序列表
+      if (trimmed.match(/^[-*+]\s/)) {
+        const listItems: Record<string, unknown>[] = [];
+        while (i < lines.length) {
+          const li = lines[i].trim();
+          if (li.match(/^[-*+]\s/)) {
+            listItems.push({
+              type: 'listItem',
+              content: [{
+                type: 'paragraph',
+                content: this.parseInlineMarks(li.replace(/^[-*+]\s+/, '')),
+              }],
+            });
+            i++;
+          } else if (li.length === 0) {
+            i++;
+          } else {
+            break;
+          }
+        }
+        content.push({ type: 'bulletList', content: listItems });
+        continue;
+      }
+
+      // 有序列表
+      if (trimmed.match(/^\d+\.\s/)) {
+        const listItems: Record<string, unknown>[] = [];
+        while (i < lines.length) {
+          const li = lines[i].trim();
+          if (li.match(/^\d+\.\s/)) {
+            listItems.push({
+              type: 'listItem',
+              content: [{
+                type: 'paragraph',
+                content: this.parseInlineMarks(li.replace(/^\d+\.\s+/, '')),
+              }],
+            });
+            i++;
+          } else if (li.length === 0) {
+            i++;
+          } else {
+            break;
+          }
+        }
+        content.push({ type: 'orderedList', content: listItems });
+        continue;
+      }
+
+      // 引用
+      if (trimmed.startsWith('>')) {
+        const quoteLines: string[] = [];
+        while (i < lines.length && lines[i].trim().startsWith('>')) {
+          quoteLines.push(lines[i].trim().replace(/^>\s?/, ''));
+          i++;
+        }
+        content.push({
+          type: 'blockquote',
+          content: [{
+            type: 'paragraph',
+            content: this.parseInlineMarks(quoteLines.join(' ')),
+          }],
+        });
+        continue;
+      }
+
+      // 普通段落
+      content.push({
+        type: 'paragraph',
+        content: this.parseInlineMarks(trimmed),
+      });
+      i++;
+    }
+
+    return {
+      type: 'doc',
+      content: content.length > 0 ? content : [{ type: 'paragraph' }],
+    };
+  }
+
+  /**
+   * 解析行内标记：加粗、斜体、代码
+   */
+  private parseInlineMarks(text: string): Record<string, unknown>[] {
+    const result: Record<string, unknown>[] = [];
+    // 按 **加粗**、*斜体*、__斜体__、`代码` 分割
+    const regex = /(\*\*[\s\S]+?\*\*|\*[\s\S]+?\*|_[\s\S]+?_|`[\s\S]+?`)/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(text)) !== null) {
+      // 普通文本
+      if (match.index > lastIndex) {
+        result.push({ type: 'text', text: text.slice(lastIndex, match.index) });
+      }
+
+      const token = match[1];
+      if (token.startsWith('**') && token.endsWith('**')) {
+        result.push({
+          type: 'text',
+          text: token.slice(2, -2),
+          marks: [{ type: 'bold' }],
+        });
+      } else if (token.startsWith('*') && token.endsWith('*')) {
+        result.push({
+          type: 'text',
+          text: token.slice(1, -1),
+          marks: [{ type: 'italic' }],
+        });
+      } else if (token.startsWith('_') && token.endsWith('_')) {
+        result.push({
+          type: 'text',
+          text: token.slice(1, -1),
+          marks: [{ type: 'italic' }],
+        });
+      } else if (token.startsWith('`') && token.endsWith('`')) {
+        result.push({
+          type: 'text',
+          text: token.slice(1, -1),
+          marks: [{ type: 'code' }],
+        });
+      }
+
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      result.push({ type: 'text', text: text.slice(lastIndex) });
+    }
+
+    return result.length > 0 ? result : [{ type: 'text', text }];
+  }
+
+  private async createNote(userId: string, input: Record<string, unknown>): Promise<string> {
+    const title = String(input.title ?? '').trim();
+    const contentText = String(input.content ?? '').trim();
+    const tags = Array.isArray(input.tags) ? input.tags.filter((t): t is string => typeof t === 'string') : [];
+    const folderId = input.folderId ? String(input.folderId) : null;
+
+    if (!title || !contentText) {
+      return JSON.stringify({ error: '标题和内容不能为空' });
+    }
+
+    const tiptapContent = this.markdownToTiptap(contentText);
+
+    const note = await this.prisma.note.create({
+      data: {
+        userId,
+        title,
+        content: tiptapContent as any,
+        plainText: contentText,
+        tags,
+        folderId,
+      },
+    });
+
+    return JSON.stringify({
+      success: true,
+      id: note.id,
+      title: note.title,
+      message: `笔记「${note.title}」已创建`,
+    });
+  }
+
+  private async updateNote(userId: string, input: Record<string, unknown>): Promise<string> {
+    const noteId = String(input.noteId ?? '');
+    const newTitle = input.title ? String(input.title).trim() : undefined;
+    const newContentText = input.content ? String(input.content).trim() : undefined;
+    const append = Boolean(input.append ?? false);
+    const newTags = Array.isArray(input.tags) ? input.tags.filter((t): t is string => typeof t === 'string') : undefined;
+
+    const existing = await this.prisma.note.findFirst({
+      where: { id: noteId, userId, deletedAt: null },
+    });
+
+    if (!existing) {
+      return JSON.stringify({ error: '笔记不存在或无权限' });
+    }
+
+    const data: Record<string, unknown> = {};
+
+    if (newTitle !== undefined && newTitle.length > 0) {
+      data.title = newTitle;
+    }
+
+    if (newContentText !== undefined) {
+      if (append) {
+        // 追加模式
+        const combinedPlainText = existing.plainText + '\n\n' + newContentText;
+        data.plainText = combinedPlainText;
+        data.content = this.markdownToTiptap(combinedPlainText) as any;
+      } else {
+        // 覆盖模式
+        data.plainText = newContentText;
+        data.content = this.markdownToTiptap(newContentText) as any;
+      }
+    }
+
+    if (newTags !== undefined) {
+      data.tags = newTags;
+    }
+
+    const note = await this.prisma.note.update({
+      where: { id: noteId },
+      data,
+    });
+
+    return JSON.stringify({
+      success: true,
+      id: note.id,
+      title: note.title,
+      message: `笔记「${note.title}」已更新`,
     });
   }
 }

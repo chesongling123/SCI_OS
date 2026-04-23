@@ -7,6 +7,7 @@ import { CalendarModule } from './modules/calendar/calendar.module';
 import { TaskModule } from './modules/task/task.module';
 import { PomodoroModule } from './modules/pomodoro/pomodoro.module';
 import { AiModule } from './modules/ai/ai.module';
+import { NoteModule } from './modules/note/note.module';
 
 /**
  * 根模块
@@ -42,6 +43,9 @@ import { AiModule } from './modules/ai/ai.module';
 
     // Phase 2 AI 模块
     AiModule,
+
+    // Phase 2 笔记模块
+    NoteModule,
   ],
 })
 export class AppModule {}

@@ -11,6 +11,7 @@ const Home = lazy(() => import('./pages/Home'));
 const CalendarPage = lazy(() => import('./modules/calendar/CalendarPage'));
 const TaskPage = lazy(() => import('./modules/task/TaskPage'));
 const PomodoroPage = lazy(() => import('./modules/pomodoro/PomodoroPage'));
+const NotePage = lazy(() => import('./modules/note/NotePage'));
 
 /**
  * 页面加载占位 — 液态玻璃风格，与 Layout 导航栏视觉一致
@@ -80,6 +81,14 @@ function App() {
           element={
             <Suspense fallback={<PageLoader />}>
               <PomodoroPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/notes"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <NotePage />
             </Suspense>
           }
         />

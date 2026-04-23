@@ -152,6 +152,67 @@ export interface PaginatedResponse<T> {
 }
 
 // ============================================
+// 笔记模块 DTO
+// ============================================
+
+export interface CreateNoteDto {
+  title: string;
+  content: Record<string, unknown>; // Tiptap JSON
+  plainText: string;
+  tags?: string[];
+  folderId?: string | null;
+}
+
+export interface UpdateNoteDto {
+  title?: string;
+  content?: Record<string, unknown>;
+  plainText?: string;
+  tags?: string[];
+  folderId?: string | null;
+  isPinned?: boolean;
+  isArchived?: boolean;
+}
+
+export interface NoteResponseDto {
+  id: string;
+  title: string;
+  content: Record<string, unknown>;
+  plainText: string;
+  summary: string | null;
+  tags: string[];
+  folderId: string | null;
+  isPinned: boolean;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SearchNoteDto {
+  q: string;
+  tag?: string;
+  limit?: number;
+}
+
+export interface CreateNoteFolderDto {
+  name: string;
+  parentId?: string | null;
+}
+
+export interface UpdateNoteFolderDto {
+  name?: string;
+  parentId?: string | null;
+}
+
+export interface NoteFolderResponseDto {
+  id: string;
+  name: string;
+  parentId: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
 // AI 助手模块 DTO
 // ============================================
 

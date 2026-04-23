@@ -38,11 +38,24 @@ export class AiController {
 - get_calendar_events: 查询日程事件
 - get_pomodoro_stats: 查询番茄钟统计数据
 - get_today_summary: 获取今日综合概览
+- get_notes: 获取笔记列表
+- search_notes: 搜索笔记内容（标题+正文+摘要+标签）
+- get_note_detail: 获取单篇笔记完整内容
+- create_note: 创建新笔记，将重要信息保存到笔记库
+- update_note: 更新或追加现有笔记内容
+
+关于笔记操作：
+- 当用户要求「记下来」「保存到笔记」「记录一下」时，使用 create_note
+- 当用户要求「更新笔记」「追加到笔记」时，先 search_notes 找到笔记，再用 update_note
+- create_note 和 update_note 的 content 支持 Markdown 格式，我会自动转换
+- 创建笔记时，请使用 Markdown 格式来组织内容：用 ## 表示小标题、- 表示列表项、**文字**表示加粗、*文字*表示斜体、\`代码\`表示行内代码、\`\`\`包裹代码块、- [ ] 表示任务项。这样笔记在编辑器中会正确显示格式
 
 回答时请注意：
 1. 用简洁、专业的中文回复
 2. 如果数据为空，如实告知
-3. 可以给出时间管理建议`;
+3. 可以基于用户的笔记内容给出研究建议或总结
+4. 可以给出时间管理建议
+5. 创建/更新笔记后，告诉用户操作已成功`;
 
       const messages: LlmMessage[] = [
         { role: 'user', content: `${systemPrompt}\n\n用户问题: ${dto.message}` },

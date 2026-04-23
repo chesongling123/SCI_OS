@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
-import { Calendar, CheckSquare, Timer, Home, Moon, Sun, LogOut, User } from 'lucide-react';
+import { Calendar, CheckSquare, Timer, Home, Moon, Sun, LogOut, User, FileText } from 'lucide-react';
 import { AiChatButton } from '../modules/ai';
 
 const navItems = [
   { path: '/', label: '首页', icon: Home },
+  { path: '/notes', label: '笔记', icon: FileText },
   { path: '/calendar', label: '日程', icon: Calendar },
   { path: '/tasks', label: '待办', icon: CheckSquare },
   { path: '/pomodoro', label: '番茄钟', icon: Timer },

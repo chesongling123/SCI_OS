@@ -6,6 +6,8 @@ async function main() {
   console.log('🌱 开始注入种子数据...');
 
   // 清理旧数据
+  await prisma.note.deleteMany();
+  await prisma.noteFolder.deleteMany();
   await prisma.pomodoroSession.deleteMany();
   await prisma.task.deleteMany();
   await prisma.event.deleteMany();
@@ -119,6 +121,74 @@ async function main() {
     await prisma.pomodoroSession.create({ data: s as any });
   }
   console.log(`✅ 已创建 ${pomodoroSessions.length} 条番茄钟历史记录`);
+
+  // ========== 笔记种子数据 ==========
+  // 创建文件夹
+  const folderResearch = await prisma.noteFolder.create({
+    data: { userId: user.id, name: '科研记录' },
+  });
+  const folderPapers = await prisma.noteFolder.create({
+    data: { userId: user.id, name: '文献阅读' },
+  });
+  const folderIdeas = await prisma.noteFolder.create({
+    data: { userId: user.id, name: '灵感想法' },
+  });
+
+  const notes = [
+    {
+      title: 'Transformer 综述阅读笔记',
+      plainText: 'Attention Is All You Need 是 Transformer 架构的开山之作。核心创新在于完全基于注意力机制，摒弃了 RNN 和 CNN。\n\n关键概念：\n- Self-Attention：计算序列中每个位置与其他位置的关系\n- Multi-Head Attention：并行计算多组注意力，捕捉不同子空间信息\n- Positional Encoding：注入位置信息，因为 Attention 本身是无序的\n\n实验结果：在 WMT 2014 英德翻译任务上达到 28.4 BLEU，训练速度大幅提升。',
+      tags: ['深度学习', 'NLP', '论文笔记'],
+      folderId: folderPapers.id,
+      isPinned: true,
+    },
+    {
+      title: '实验 Week 12 数据汇总',
+      plainText: '本周主要完成了 DiffAct 模型在 THUMOS14 数据集上的消融实验。\n\n实验配置：\n- Backbone: I3D + RGB\n- Batch size: 16\n- Learning rate: 1e-4 with cosine decay\n\n结果对比：\n- 完整模型: mAP@0.5 = 52.3\n- 去掉 temporal attention: mAP@0.5 = 48.7 (-3.6)\n- 去掉 actionness branch: mAP@0.5 = 49.1 (-3.2)\n\n结论：temporal attention 和 actionness branch 都是关键组件。下一步尝试引入多尺度特征融合。',
+      tags: ['实验记录', 'DiffAct', 'THUMOS14'],
+      folderId: folderResearch.id,
+    },
+    {
+      title: '导师组会反馈 —— 开题报告修改',
+      plainText: '2026-04-15 组会要点：\n\n1. 研究背景需要补充时序动作检测的最新进展（2024-2025）\n2. 创新点表述不够清晰，建议用「问题-方法-效果」三段式\n3. 技术路线图过于笼统，需要细化到模块级别\n4. 实验设计缺少对比基线，至少补充 3 个 SOTA 方法\n\n下次组会前完成：\n- [ ] 重写第一章研究背景（2页）\n- [ ] 画一张详细的技术路线图\n- [ ] 列出完整的实验对比表格',
+      tags: ['导师', '开题报告', '待办'],
+      folderId: folderResearch.id,
+      isPinned: true,
+    },
+    {
+      title: '关于 MCP 协议在科研工具中应用的思考',
+      plainText: '最近调研了 Model Context Protocol (MCP)，感觉非常适合用来构建科研助手。\n\n核心想法：\n- 用 MCP 统一封装文献检索、实验数据查询、论文写作辅助等工具\n- AI 助手通过 Function Calling 调用这些工具，而不是直接生成答案\n- 本地优先：所有数据存在本地 PostgreSQL，AI 只读取不存储\n\n可能的实现路径：\n1. 先实现笔记系统的 RAG 检索（pgvector）\n2. 再封装 Zotero 的文献查询接口\n3. 最后接入论文写作辅助（LaTeX 模板、参考文献格式化）\n\n风险：MCP 生态还不够成熟，可能需要自己维护适配器。',
+      tags: ['MCP', '架构设计', '灵感'],
+      folderId: folderIdeas.id,
+    },
+    {
+      title: 'PyTorch 2.0 compile 模式踩坑记录',
+      plainText: '尝试将训练代码迁移到 PyTorch 2.0 的 torch.compile()，遇到几个问题：\n\n1. 动态 shape 导致 graph break\n   - 解决：在 collate_fn 中统一 padding 到固定长度\n\n2. 自定义 CUDA kernel 不兼容\n   - 解决：暂时 fallback 到 eager mode\n\n3. 编译时间太长（首次运行 5 分钟）\n   - 解决：使用 torch.compile(mode="reduce-overhead") 而非默认的 max-autotune\n\n性能提升：\n- 训练速度提升约 15-20%\n- 显存占用略微增加（约 200MB）\n\n结论：对于相对固定的模型结构值得开启，但调试阶段建议关闭。',
+      tags: ['PyTorch', '工程优化', '踩坑'],
+    },
+  ];
+
+  for (const n of notes) {
+    const content = {
+      type: 'doc',
+      content: n.plainText.split('\n\n').map((para) => ({
+        type: 'paragraph',
+        content: [{ type: 'text', text: para }],
+      })),
+    };
+    await prisma.note.create({
+      data: {
+        userId: user.id,
+        title: n.title,
+        content: content as any,
+        plainText: n.plainText,
+        tags: n.tags,
+        folderId: n.folderId ?? null,
+        isPinned: n.isPinned ?? false,
+      },
+    });
+  }
+  console.log(`✅ 已创建 ${notes.length} 条示例笔记 + 3 个文件夹`);
 }
 
 main()

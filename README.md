@@ -1,8 +1,8 @@
 # PhD_OS —— AI 驱动的博士科研工作台
 
-> **项目阶段**: 🚧 Phase 1 工程脚手架已完成，核心功能开发中  
+> **项目阶段**: ✅ Phase 1 MVP 已完成，进入 Phase 2 扩展  
 > **主要语言**: 中文（文档与注释）  
-> **最后更新**: 2026-04-21
+> **最后更新**: 2026-04-23
 
 ---
 
@@ -127,11 +127,11 @@ pnpm dev:frontend  # http://localhost:5173
 | Docker 开发环境 | ✅ 完成 | Compose 三服务 |
 | 共享类型包 | ✅ 完成 | DTO / 枚举 / 接口 |
 | 液态玻璃 UI 系统 | ✅ 完成 | CSS 变量 + Tailwind |
-| 日程管理（日历）| 🚧 待实现 | FullCalendar + iCal |
-| 任务看板（待办）| 🚧 待实现 | @dnd-kit + 乐观更新 |
-| 番茄钟 | 🚧 待实现 | Web Audio API + Canvas |
-| 认证系统 | 🚧 Phase 2 | JWT + OAuth2 |
-| AI 助手集成 | 🚧 Phase 2 | OpenClaw WebSocket |
+| 日程管理（日历）| ✅ 已完成 | FullCalendar + 拖拽调整 |
+| 任务看板（待办）| ✅ 已完成 | @dnd-kit + 乐观更新 |
+| 番茄钟 | ✅ 已完成 | Web Audio API + Canvas 热力图 |
+| 认证系统 | ✅ 已完成 | JWT Access Token + 登录/注册页 |
+| AI 助手集成 | ✅ 已完成 | SSE 流式对话 + Function Calling |
 
 ---
 

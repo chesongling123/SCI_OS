@@ -163,6 +163,14 @@ export function useAiChat() {
           }
         }
 
+        // 检测到 AI 创建/更新笔记后，通知笔记页面刷新
+        const hasNoteOperation = toolCalls.some(
+          (t) => t.tool === 'create_note' || t.tool === 'update_note'
+        );
+        if (hasNoteOperation) {
+          window.dispatchEvent(new CustomEvent('phd:note-changed'));
+        }
+
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantId
