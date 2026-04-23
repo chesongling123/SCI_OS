@@ -10,6 +10,7 @@ export class PomodoroService {
     return this.prisma.pomodoroSession.create({
       data: {
         taskId: dto.taskId ?? null,
+        referenceId: dto.referenceId ?? null,
         plannedDuration: dto.plannedDuration ?? 1500,
         duration: 0,
         interruptions: 0,
@@ -25,13 +26,39 @@ export class PomodoroService {
     });
     if (!session) throw new NotFoundException(`会话 ${id} 不存在`);
 
-    return this.prisma.pomodoroSession.update({
-      where: { id },
-      data: {
-        duration: dto.duration,
-        interruptions: dto.interruptions ?? 0,
-        endedAt: new Date(),
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.pomodoroSession.update({
+        where: { id },
+        data: {
+          duration: dto.duration,
+          interruptions: dto.interruptions ?? 0,
+          endedAt: new Date(),
+        },
+        include: {
+          task: { select: { id: true, title: true } },
+          reference: { select: { id: true, title: true } },
+        },
+      });
+
+      if (session.taskId) {
+        await tx.task.update({
+          where: { id: session.taskId },
+          data: { pomodoroCount: { increment: 1 } },
+        });
+      }
+
+      if (session.referenceId) {
+        await tx.reference.update({
+          where: { id: session.referenceId },
+          data: {
+            totalReadTime: { increment: dto.duration },
+            readCount: { increment: 1 },
+            lastReadAt: new Date(),
+          },
+        });
+      }
+
+      return updated;
     });
   }
 
@@ -47,6 +74,10 @@ export class PomodoroService {
         startedAt: { gte: startOfDay, lte: endOfDay },
       },
       orderBy: { startedAt: 'desc' },
+      include: {
+        task: { select: { id: true, title: true } },
+        reference: { select: { id: true, title: true } },
+      },
     });
   }
 
@@ -61,6 +92,10 @@ export class PomodoroService {
         endedAt: { not: null },
       },
       orderBy: { startedAt: 'asc' },
+      include: {
+        task: { select: { id: true, title: true } },
+        reference: { select: { id: true, title: true } },
+      },
     });
   }
 
@@ -75,6 +110,10 @@ export class PomodoroService {
         userId,
         startedAt: { gte: startOfDay, lte: endOfDay },
         endedAt: { not: null },
+      },
+      include: {
+        task: { select: { id: true, title: true } },
+        reference: { select: { id: true, title: true } },
       },
     });
 

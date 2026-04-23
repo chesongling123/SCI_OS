@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Square, RotateCcw, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Volume2, VolumeX, Loader2, CheckSquare, BookOpen, X } from 'lucide-react';
 import {
   useCreatePomodoroSession,
   useEndPomodoroSession,
   useTodayStats,
   useDailyStats,
 } from '../../hooks/usePomodoro';
+import { useTasks } from '../../hooks/useTasks';
+import { useReferences } from '../../hooks/useReferences';
 import type { PomodoroSessionResponseDto } from '@phd/shared-types';
 
 type PomodoroMode = 'work' | 'shortBreak' | 'longBreak';
@@ -31,12 +33,16 @@ export default function PomodoroPage() {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const noiseNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const [noiseEnabled, setNoiseEnabled] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState('');
+  const [selectedReferenceId, setSelectedReferenceId] = useState('');
 
   // API
   const createSession = useCreatePomodoroSession();
   const endSession = useEndPomodoroSession();
   const { data: todayStats, isLoading: statsLoading } = useTodayStats();
   const { data: dailyStats } = useDailyStats(365);
+  const { data: tasks } = useTasks();
+  const { data: referencesData } = useReferences({ limit: 100 });
 
   const config = MODE_CONFIG[mode];
   const totalTime = config.duration;
@@ -56,7 +62,11 @@ export default function PomodoroPage() {
       // 如果是专注模式且没有 sessionId，创建后端会话
       if (mode === 'work' && !sessionId) {
         createSession.mutate(
-          { plannedDuration: totalTime },
+          {
+            plannedDuration: totalTime,
+            ...(selectedTaskId ? { taskId: selectedTaskId } : {}),
+            ...(selectedReferenceId ? { referenceId: selectedReferenceId } : {}),
+          },
           {
             onSuccess: (data: PomodoroSessionResponseDto) => {
               setSessionId(data.id);
@@ -65,7 +75,7 @@ export default function PomodoroPage() {
         );
       }
     }
-  }, [isRunning, mode, sessionId, createSession, totalTime]);
+  }, [isRunning, mode, sessionId, createSession, totalTime, selectedTaskId, selectedReferenceId]);
 
   // 暂停计时
   const handlePause = useCallback(() => {
@@ -90,6 +100,8 @@ export default function PomodoroPage() {
             setSessionId(null);
             setInterruptions(0);
             setTimeLeft(totalTime);
+            setSelectedTaskId('');
+            setSelectedReferenceId('');
           },
         }
       );
@@ -113,6 +125,8 @@ export default function PomodoroPage() {
     setTimeLeft(MODE_CONFIG[newMode].duration);
     setSessionId(null);
     setInterruptions(0);
+    setSelectedTaskId('');
+    setSelectedReferenceId('');
   };
 
   // 计时器核心
@@ -130,6 +144,8 @@ export default function PomodoroPage() {
               });
               setSessionId(null);
               setInterruptions(0);
+              setSelectedTaskId('');
+              setSelectedReferenceId('');
             }
             return 0;
           }
@@ -257,6 +273,52 @@ export default function PomodoroPage() {
           ))}
         </div>
 
+        {/* 关联选择器 */}
+        {mode === 'work' && (
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+            <div className="relative">
+              <select
+                value={selectedTaskId}
+                onChange={(e) => setSelectedTaskId(e.target.value)}
+                disabled={isRunning || !!sessionId}
+                className="appearance-none min-w-[140px] px-3 py-2 pr-8 rounded-xl text-sm bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-white/20 disabled:opacity-50"
+              >
+                <option value="">📋 选择任务...</option>
+                {tasks?.map((t) => (
+                  <option key={t.id} value={t.id}>{t.title}</option>
+                ))}
+              </select>
+              <CheckSquare className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={selectedReferenceId}
+                onChange={(e) => setSelectedReferenceId(e.target.value)}
+                disabled={isRunning || !!sessionId}
+                className="appearance-none min-w-[140px] px-3 py-2 pr-8 rounded-xl text-sm bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-white/20 disabled:opacity-50"
+              >
+                <option value="">📚 选择文献...</option>
+                {referencesData?.data?.map((r) => (
+                  <option key={r.id} value={r.id}>{r.title}</option>
+                ))}
+              </select>
+              <BookOpen className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
+
+            {(selectedTaskId || selectedReferenceId) && (
+              <button
+                onClick={() => { setSelectedTaskId(''); setSelectedReferenceId(''); }}
+                disabled={isRunning || !!sessionId}
+                className="flex items-center gap-1 px-2 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground bg-white/5 border border-white/10 disabled:opacity-50 transition-colors"
+              >
+                <X className="w-3 h-3" />
+                清除
+              </button>
+            )}
+          </div>
+        )}
+
         {/* 圆形进度计时器 */}
         <div className="relative w-64 h-64 mb-6">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -375,6 +437,8 @@ export default function PomodoroPage() {
                     <p className="text-xs text-muted-foreground">
                       {new Date(s.startedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
                       {s.interruptions > 0 && ` · 中断 ${s.interruptions} 次`}
+                      {s.task && ` · 📋 ${s.task.title}`}
+                      {s.reference && ` · 📚 ${s.reference.title}`}
                     </p>
                   </div>
                 </div>

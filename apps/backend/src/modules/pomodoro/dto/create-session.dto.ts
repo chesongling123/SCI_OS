@@ -7,6 +7,11 @@ export class CreateSessionDto {
   @IsString()
   taskId?: string;
 
+  @ApiPropertyOptional({ description: '关联文献 ID' })
+  @IsOptional()
+  @IsString()
+  referenceId?: string;
+
   @ApiPropertyOptional({ description: '计划专注时长（秒），默认 1500 = 25 分钟', default: 1500 })
   @IsOptional()
   @IsNumber()

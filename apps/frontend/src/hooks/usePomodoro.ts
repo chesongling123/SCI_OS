@@ -43,6 +43,8 @@ export function useEndPomodoroSession() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pomodoro'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['references'] });
     },
   });
 }

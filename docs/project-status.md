@@ -1,7 +1,8 @@
 # PhD_OS 项目状态追踪
 
 > **文档类型**: 项目进度备忘  
-> **最后更新**: 2026-04-23  
+> **最后更新**: 2026-04-23
+> **Phase 2 状态**: ✅ 全部完成  
 > **当前阶段**: ✅ Phase 1 MVP 已完成，进入 Phase 2 扩展
 
 ---
@@ -432,7 +433,7 @@ pnpm -F @phd/frontend build → ✅ 零错误
 - [x] RAG 语义检索（pgvector embedding，已接入豆包 Ark Embedding API）
 - [x] 文献 ↔ 任务/笔记联动（Task↔Reference、Note↔Reference）
 - [x] DOI 导入 + 引用导出（CrossRef API + 5 种引用格式）
-- [ ] Pomodoro ↔ 任务/文献联动（Schema 就绪，API/前端未接入）
+- [x] Pomodoro ↔ 任务/文献联动（Schema 就绪，API/前端已接入）
 
 ---
 
@@ -448,3 +449,4 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | 2026-04-23 | RAG 语义检索完成：EmbeddingService（豆包 Ark API）、notes/references 的 `vector(1024)` 字段、`semanticSearch` API、AI 工具 `search_notes`/`search_references` 支持 `semantic` 标志 |
 | 2026-04-23 | DOI 导入 + 引用导出完成：`DoiImporterService`（CrossRef API）、`CitationService`（5 种格式：bibtex/gb7714/apa/mla/chicago）、前端 DOI 导入弹窗、文献详情页引用复制按钮、AI 工具 `import_reference_by_doi` |
 | 2026-04-23 | 编译错误修复：`create_task` AI 工具补注册到 `PHD_OS_TOOLS`、前端 `ReferenceReader.tsx`/`PdfViewer.tsx`/`TaskPage.tsx`/`useReferences.ts` TypeScript 错误清零、前后端 `pnpm run build` 全量通过 |
+| 2026-04-23 | Pomodoro 联动补完：`CreateSessionDto` 新增 `referenceId`；`PomodoroService.end()` 事务内联动更新 `Task.pomodoroCount` / `Reference.totalReadTime/readCount/lastReadAt`；查询全量 `include` 关联对象；前端 PomodoroPage 新增任务/文献选择器；会话列表展示关联名称；前后端构建零错误 |

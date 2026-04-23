@@ -90,6 +90,7 @@ export interface MoveTaskDto {
 
 export interface CreatePomodoroDto {
   taskId?: string;
+  referenceId?: string; // 关联文献 ID
   plannedDuration: number; // 秒，默认 1500（25min）
 }
 
@@ -101,12 +102,15 @@ export interface EndPomodoroDto {
 export interface PomodoroSessionResponseDto {
   id: string;
   taskId: string | null;
+  referenceId: string | null;
   duration: number;
   plannedDuration: number;
   interruptions: number;
   startedAt: string;
   endedAt: string | null;
   createdAt: string;
+  task?: { id: string; title: string } | null;
+  reference?: { id: string; title: string } | null;
 }
 
 export interface PomodoroStatsDto {
