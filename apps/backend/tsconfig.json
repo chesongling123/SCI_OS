@@ -21,5 +21,6 @@
       "@/*": ["src/*"],
       "@phd/shared-types": ["../packages/shared-types/src/index.ts"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts", "**/*.test.ts", "**/*.mock.ts"]
 }

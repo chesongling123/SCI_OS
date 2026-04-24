@@ -23,10 +23,18 @@
     "typecheck": "pnpm run -r typecheck",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f"
+    "docker:logs": "docker compose logs -f",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "typescript": "^5.5.0"
+  },
+  "lint-staged": {
+    "apps/backend/src/**/*.ts": "cd apps/backend && pnpm typecheck",
+    "apps/frontend/src/**/*.{ts,tsx}": "cd apps/frontend && pnpm typecheck",
+    "packages/shared-types/src/**/*.ts": "cd packages/shared-types && pnpm typecheck"
   }
 }

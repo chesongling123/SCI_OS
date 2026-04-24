@@ -5,7 +5,9 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
+import { createHash } from 'crypto';
+import { readFileSync } from 'fs';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MulterFile = any;
@@ -174,11 +176,13 @@ export class ReferenceController {
       tags: tags ? tags.split(',').map(t => t.trim()) : [],
     });
 
-    // 更新文件信息
+    // 计算文件 SHA-256 并更新文件信息
+    const fileBuffer = readFileSync(join('./uploads/papers', file.filename));
+    const fileHash = createHash('sha256').update(fileBuffer).digest('hex');
     await this.referenceService.updateFileInfo(req.user.id, reference.id, {
       filePath: file.filename,
       fileSize: file.size,
-      fileHash: '', // TODO: 计算 SHA-256
+      fileHash,
     });
 
     return this.referenceService.findOne(req.user.id, reference.id);
