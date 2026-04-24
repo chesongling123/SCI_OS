@@ -10,7 +10,7 @@ AI 驱动的博士科研工作台 —— 开发文档存档
 | `design/` | UI/UX 设计规范与前端设计指南 |
 | `api/` | RESTful API 接口文档 |
 | `database/` | 数据库设计与数据模型 |
-| `deployment/` | 部署配置（Docker Compose 等） |
+| `deployment/` | 部署配置、CI/CD 工作流（Docker Compose、GitHub Actions 等） |
 | `ai-integration/` | OpenClaw 集成与 AI 服务层文档 |
 
 ## 核心文档
@@ -41,9 +41,9 @@ AI 驱动的博士科研工作台 —— 开发文档存档
 |------|-----|
 | **名称** | PhD Workstation |
 | **定位** | 本地优先、AI 原生的个人科研工作台 |
-| **技术栈** | React 19 + Vite 6 + NestJS + OpenClaw + PostgreSQL/SQLite |
+| **技术栈** | React 19 + Vite 6 + NestJS 11 + Prisma + PostgreSQL + Redis |
 | **创建日期** | 2026-04-20 |
-| **状态** | 🚧 进行中（前端 Demo 已搭建，架构设计完成） |
+| **状态** | ✅ Phase 1 MVP + Phase 2 扩展已完成（8 大模块 + 测试/CI/CD） |
 
 ---
-*最后更新: 2026-04-21*
+*最后更新: 2026-04-23*
