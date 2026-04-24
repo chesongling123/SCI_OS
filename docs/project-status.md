@@ -435,6 +435,21 @@ pnpm -F @phd/frontend build → ✅ 零错误
 - [x] DOI 导入 + 引用导出（CrossRef API + 5 种引用格式）
 - [x] Pomodoro ↔ 任务/文献联动（Schema 就绪，API/前端已接入）
 
+### Phase 3 验收标准（进行中）
+
+- [x] AI 对话持久化：`AiConversation` + `AiMessage` 数据库模型
+- [x] 后端对话 CRUD API：创建/列表/详情/更新标题/删除
+- [x] 改造 `POST /api/v1/ai/chat`：支持 `conversationId`，自动保存消息，加载历史作为多轮上下文
+- [x] 前端对话列表 sidebar：左侧 200px 可收起面板，新建/选择/删除对话
+- [x] 前端 `useAiChat` 改造：支持 `conversationId`、加载历史、`conversation_id` SSE 事件
+- [x] 修复 SSE `tool_call` 事件：后端 `LlmService` 在工具执行前后 yield 状态，前端实时显示
+- [x] 修复 `ToolCallIndicator` 图标映射：按工具名关键词匹配（task/pomodoro/calendar/note/reference）
+- [x] AI 快捷命令：`POST /api/v1/ai/quick`（translate/polish/summarize）
+- [x] 前端 `/` 命令检测：输入 `/` 弹出命令面板，选中后显示标签
+- [x] 快捷命令打字机效果：结果逐字显示，不保存到数据库
+- [x] Prisma Shadow DB 配置：解决 `migrate dev` 的 pgvector 兼容问题
+- [ ] AI 主动建议：基于番茄钟/日程/任务的智能提醒 Toast（待实现）
+
 ---
 
 ## 七、历史版本记录
@@ -450,3 +465,6 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | 2026-04-23 | DOI 导入 + 引用导出完成：`DoiImporterService`（CrossRef API）、`CitationService`（5 种格式：bibtex/gb7714/apa/mla/chicago）、前端 DOI 导入弹窗、文献详情页引用复制按钮、AI 工具 `import_reference_by_doi` |
 | 2026-04-23 | 编译错误修复：`create_task` AI 工具补注册到 `PHD_OS_TOOLS`、前端 `ReferenceReader.tsx`/`PdfViewer.tsx`/`TaskPage.tsx`/`useReferences.ts` TypeScript 错误清零、前后端 `pnpm run build` 全量通过 |
 | 2026-04-23 | Pomodoro 联动补完：`CreateSessionDto` 新增 `referenceId`；`PomodoroService.end()` 事务内联动更新 `Task.pomodoroCount` / `Reference.totalReadTime/readCount/lastReadAt`；查询全量 `include` 关联对象；前端 PomodoroPage 新增任务/文献选择器；会话列表展示关联名称；前后端构建零错误 |
+| 2026-04-24 | Phase 3 AI 对话持久化完成：`AiConversation` + `AiMessage` 模型、`AiConversationService` 对话 CRUD、`AiController.chat` 改造支持历史上下文、前端对话列表 sidebar、`useAiChat` 加载历史、修复 SSE `tool_call` 事件和 `ToolCallIndicator` 图标映射 |
+| 2026-04-24 | Phase 3 AI 快捷命令完成：`AiQuickService` + `LlmService.quickAsk` + `POST /api/v1/ai/quick`、前端 `/` 命令检测面板、translate/polish/summarize 三种命令、打字机效果显示结果 |
+| 2026-04-24 | 工程修复：Prisma Shadow DB 配置（`SHADOW_DATABASE_URL`）、前后端 `pnpm run build` 零错误、Jest 8/8 + Vitest 3/3 测试通过 |

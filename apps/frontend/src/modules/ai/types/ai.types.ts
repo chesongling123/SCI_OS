@@ -23,6 +23,7 @@ export interface ChatOptions {
   onToken?: (token: string) => void;
   onComplete?: (fullResponse: string) => void;
   onError?: (error: Error) => void;
+  onConversationCreated?: (conversationId: string) => void;
 }
 
 /**

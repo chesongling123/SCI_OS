@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ChatMessage, ToolCallInfo, ChatOptions } from '../types/ai.types';
 import { authHeaders } from '../../../lib/api';
 
@@ -30,16 +30,47 @@ async function* mockStream(userMessage: string): AsyncGenerator<string> {
 }
 
 /**
- * AI 聊天 Hook
- * 支持 SSE 流式对话 + mock 降级模式
+ * AI 聊天 Hook（Phase 3：支持对话持久化）
+ * - 支持传入 conversationId 继续已有对话
+ * - 支持加载历史消息
+ * - 新对话自动获取 conversationId
  */
-export function useAiChat() {
+export function useAiChat(conversationId?: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasSwitchedToMock, setHasSwitchedToMock] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(conversationId ?? null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const useMock = hasSwitchedToMock;
+
+  // 当外部传入的 conversationId 变化时，同步内部状态
+  useEffect(() => {
+    setCurrentConversationId(conversationId ?? null);
+  }, [conversationId]);
+
+  /**
+   * 加载历史消息到 UI
+   */
+  const loadHistory = useCallback((historyMessages: Array<{ role: string; content: string; toolCalls?: unknown; createdAt: string }>) => {
+    const formatted: ChatMessage[] = historyMessages.map((m) => ({
+      id: crypto.randomUUID(),
+      role: m.role.toLowerCase() as 'user' | 'assistant',
+      content: m.content,
+      timestamp: new Date(m.createdAt),
+      status: 'complete',
+      toolCalls: m.toolCalls ? (m.toolCalls as ToolCallInfo[]) : undefined,
+    }));
+    setMessages(formatted);
+  }, []);
+
+  /**
+   * 清空消息
+   */
+  const clear = useCallback(() => {
+    setMessages([]);
+    setCurrentConversationId(null);
+  }, []);
 
   /**
    * 发送消息 —— 自动处理 SSE 流
@@ -87,7 +118,10 @@ export function useAiChat() {
           const res = await fetch(`${API_BASE}/chat`, {
             method: 'POST',
             headers: authHeaders(),
-            body: JSON.stringify({ message: userMessage }),
+            body: JSON.stringify({
+              message: userMessage,
+              conversationId: currentConversationId,
+            }),
             signal: abortControllerRef.current.signal,
           });
 
@@ -150,6 +184,10 @@ export function useAiChat() {
                         msg.id === assistantId ? { ...msg, toolCalls: [...toolCalls] } : msg
                       )
                     );
+                  } else if (data.type === 'conversation_id') {
+                    // 新对话创建后，后端返回 conversationId
+                    setCurrentConversationId(data.conversationId);
+                    options.onConversationCreated?.(data.conversationId);
                   } else if (data.type === 'done') {
                     // 流结束
                   } else if (data.type === 'error') {
@@ -202,7 +240,7 @@ export function useAiChat() {
         abortControllerRef.current = null;
       }
     },
-    [useMock]
+    [useMock, currentConversationId]
   );
 
   /**
@@ -220,13 +258,32 @@ export function useAiChat() {
   }, []);
 
   /**
-   * 清空对话历史
+   * 手动添加消息（用于快捷命令等不保存到数据库的场景）
    */
-  const clear = useCallback(() => {
-    setMessages([]);
+  const addMessages = useCallback((newMessages: ChatMessage[]) => {
+    setMessages((prev) => [...prev, ...newMessages]);
   }, []);
 
-  return { messages, isStreaming, sendMessage, cancel, clear, useMock, resetMock };
+  /**
+   * 更新指定消息（用于打字机效果等）
+   */
+  const updateMessage = useCallback((id: string, updater: (msg: ChatMessage) => ChatMessage) => {
+    setMessages((prev) => prev.map((msg) => (msg.id === id ? updater(msg) : msg)));
+  }, []);
+
+  return {
+    messages,
+    isStreaming,
+    currentConversationId,
+    sendMessage,
+    cancel,
+    clear,
+    loadHistory,
+    addMessages,
+    updateMessage,
+    useMock,
+    resetMock,
+  };
 }
 
 function updateToolCalls(

@@ -35,6 +35,7 @@ export interface LlmTool {
 export type StreamChunk =
   | { type: 'token'; content: string }
   | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
+  | { type: 'tool_call'; tool: string; status: 'running' | 'complete' | 'error'; params?: Record<string, unknown>; result?: string }
   | { type: 'done'; stopReason: string }
   | { type: 'error'; message: string };
 
@@ -193,6 +194,71 @@ export class LlmService {
   }
 
   /**
+   * 快速单轮问答（非流式，用于快捷命令）
+   */
+  async quickAsk(prompt: string, maxTokens = 500): Promise<string> {
+    if (!this.config.apiKey) {
+      throw new Error('AI API Key 未配置');
+    }
+
+    if (this.provider === 'anthropic') {
+      const res = await fetch(`${this.config.baseUrl}/v1/messages`, {
+        method: 'POST',
+        headers: {
+          'x-api-key': this.config.apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.config.model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: maxTokens,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => 'unknown error');
+        throw new Error(`API ${res.status}: ${errorText}`);
+      }
+
+      const data = await res.json() as Record<string, unknown>;
+      const content = data.content as Array<Record<string, unknown>> | undefined;
+      if (content && content.length > 0 && typeof content[0].text === 'string') {
+        return content[0].text;
+      }
+      return '';
+    } else {
+      const res = await fetch(`${this.config.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.config.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.config.model,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: maxTokens,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => 'unknown error');
+        throw new Error(`API ${res.status}: ${errorText}`);
+      }
+
+      const data = await res.json() as Record<string, unknown>;
+      const choices = data.choices as Array<Record<string, unknown>> | undefined;
+      if (choices && choices.length > 0) {
+        const message = choices[0].message as Record<string, unknown> | undefined;
+        if (message && typeof message.content === 'string') {
+          return message.content;
+        }
+      }
+      return '';
+    }
+  }
+
+  /**
    * 流式对话（完整版，内部处理工具调用循环）
    */
   async *chatStreamWithTools(
@@ -247,15 +313,18 @@ export class LlmService {
           assistantContent.push({ type: 'tool_use', id: tu.id, name: tu.name, input: tu.input });
         }
 
-        // 执行工具
+        // 执行工具（带 SSE 通知）
         const toolResults: LlmContentBlock[] = [];
         for (const tu of toolUses) {
+          yield { type: 'tool_call', tool: tu.name, status: 'running', params: tu.input };
           try {
             const result = await toolExecutor(tu.name, tu.input);
             toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: result });
+            yield { type: 'tool_call', tool: tu.name, status: 'complete', result: result.slice(0, 200) };
           } catch (error: unknown) {
             const msg = error instanceof Error ? error.message : String(error);
             toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: `错误: ${msg}` });
+            yield { type: 'tool_call', tool: tu.name, status: 'error', result: msg };
           }
         }
 
