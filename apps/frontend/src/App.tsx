@@ -14,6 +14,7 @@ const PomodoroPage = lazy(() => import('./modules/pomodoro/PomodoroPage'));
 const NotePage = lazy(() => import('./modules/note/NotePage'));
 const ReferencePage = lazy(() => import('./modules/reference/ReferencePage'));
 const ReferenceReader = lazy(() => import('./modules/reference/ReferenceReader'));
+const SettingsPage = lazy(() => import('./modules/settings/SettingsPage'));
 
 /**
  * 页面加载占位 — 液态玻璃风格，与 Layout 导航栏视觉一致
@@ -107,6 +108,14 @@ function App() {
           element={
             <Suspense fallback={<PageLoader />}>
               <ReferenceReader />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <SettingsPage />
             </Suspense>
           }
         />

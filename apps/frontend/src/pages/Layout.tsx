@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
-import { Calendar, CheckSquare, Timer, Home, Moon, Sun, LogOut, User, FileText, BookOpen } from 'lucide-react';
+import { Calendar, CheckSquare, Timer, Home, Moon, Sun, LogOut, User, FileText, BookOpen, Settings } from 'lucide-react';
 import { AiChatButton } from '../modules/ai';
 
 const navItems = [
@@ -80,8 +80,18 @@ export default function Layout() {
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            {/* 用户信息 + 登出 */}
+            {/* 用户信息 + 设置 + 登出 */}
             <div className="flex items-center gap-2 pl-2 border-l" style={{ borderColor: 'var(--glass-border)' }}>
+              <Link
+                to="/settings"
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                style={{ color: 'var(--text-muted)' }}
+                title="设置"
+                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-primary)'; (e.currentTarget as HTMLAnchorElement).style.background = 'var(--glass-bg-hover)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}
+              >
+                <Settings className="w-4 h-4" />
+              </Link>
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white"
                 style={{ background: 'oklch(0.52 0.18 260)' }}

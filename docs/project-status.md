@@ -3,9 +3,9 @@
 > **文档类型**: 项目进度备忘  
 > **最后更新**: 2026-04-26
 > **Phase 2 状态**: ✅ 全部完成  
-> **当前阶段**: ✅ Phase 1 MVP 已完成，进入 Phase 2 扩展
+> **当前阶段**: ✅ Phase 1 + Phase 2 核心模块已完成，设置页面已交付
 >
-> 📝 **最新变更**: [2026-04-26] 品牌重命名 —— 项目定位从"博士科研工作台"扩展为"科研生活助手"。全量替换 `PhD/博士` → `ResearchOS/科研生活助手`，详见 [CHANGELOG.md](./CHANGELOG.md)。
+> 📝 **最新变更**: [2026-04-26] 设置页面完整实现（外观/AI/番茄钟/日程/文献/通知/数据/关于）+ CI 单测修复。前后端 24 个测试全部通过，build 零错误。详见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -397,7 +397,7 @@ pnpm -F @research/frontend build → ✅ 零错误
 |:---|:---|:---|
 | 高 | **笔记系统** | ✅ 已完成：TipTap 编辑器、CRUD、搜索、标签、文件夹树形 UI、AI 工具集成、UI 打磨 |
 | 高 | **文献管理** | ✅ 已完成：PDF 上传与解析、文献库列表/筛选/搜索、阅读器（PDF.js + 批注）、文件夹树、AI 工具集成、语义检索骨架 |
-| 中 | **工程优化** | 单元测试、E2E 测试、CI/CD、PWA 支持 |
+| 中 | **工程优化** | ✅ 单元测试补充（Settings Service/Controller/Store）、CI 流程验证、前端 strict 模式类型修复 |
 | 中 | **数据同步** | Yjs CRDT 多设备同步、Electric SQL 实时同步 |
 | 低 | **桌面端** | Tauri 2.x 打包、本地文件系统访问、离线模式 |
 
@@ -413,6 +413,9 @@ pnpm -F @research/frontend build → ✅ 零错误
 | 端口 3000 残留进程 | 后端异常退出后可能残留 | `kill $(lsof -t -i:3000)` 即可恢复 |
 | `create_task` AI 工具未注册 | LLM 无法通过工具调用创建任务 | ✅ 已修复：补全 `RESEARCH_OS_TOOLS` 定义 |
 | 前端 TS 编译错误 | `ReferenceReader`/`PdfViewer`/`TaskPage`/`useReferences` 有类型/未使用错误 | ✅ 已修复：`tsc -b && vite build` 全量通过 |
+| 前端 settings 包名错误 | `@researchos/shared-types` 拼写错误 | ✅ 已修复：改为 `@research/shared-types` |
+| 前端 `import.meta.env` 类型 | Vite 环境变量类型缺失 | ✅ 已修复：新建 `src/vite-env.d.ts` |
+| Settings 模块无单测 | 新模块缺乏测试覆盖 | ✅ 已修复：后端 8 例 + 前端 5 例 |
 
 ---
 
@@ -473,3 +476,5 @@ pnpm -F @research/frontend build → ✅ 零错误
 | 2026-04-26 | 首页仪表盘重构：从 Hero 布局改为模块化多 widget 仪表盘（WelcomeBanner / StatOverview / TodayTimeline / TaskQuickView / PomodoroMini / WeeklyFocusChart / RecentNotes / RecentConversations / WeatherWidget），双栏响应式布局 |
 | 2026-04-26 | 天气模块完成：`WeatherModule` 后端（JWT + API Key 双认证、Redis 三层缓存、Ed25519 Token 缓存、和风天气企业版 API 接入）、`WeatherWidget` 前端（自动加载、localStorage 持久化、城市切换、3 小时缓存周期） |
 | 2026-04-26 | 工程修复：Vite 代理 `localhost` → `127.0.0.1` 解决 IPv6 ECONNREFUSED；全局异常过滤器增加非 HTTP 异常原始错误输出；`SharedModule` 全局导出 `RedisService` |
+| 2026-04-26 | 设置页面完成：`UserSettings` Prisma 模型、`SettingsModule` 后端（GET/PATCH API）、`SettingsPage` 前端（8 分类液态玻璃 UI）、`useSettingsStore`（Zustand + persist）、主题 store 升级支持 system 模式 |
+| 2026-04-26 | CI 与单测修复：前端包名错误修复、`vite-env.d.ts` 类型声明、未使用变量清理、`updateField` 签名修复；后端新增 Settings Service/Controller 测试；前端新增 Settings Store 测试；前后端 24 测试全部通过 |

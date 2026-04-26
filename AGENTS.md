@@ -1,8 +1,9 @@
 # ResearchOS —— AI 驱动的科研工作台
 
 > **项目阶段**: ✅ Phase 2 扩展已完成（笔记系统 + 文献管理 + RAG 语义检索 + 跨模块联动 + DOI 导入/引用导出）
+> **新增**: ✅ 设置页面（外观/AI/番茄钟/日程/文献/通知/数据/关于）
 > **主要语言**: 中文（所有设计文档和注释均以简体中文撰写）
-> **最后更新**: 2026-04-23
+> **最后更新**: 2026-04-26
 
 ---
 
@@ -32,6 +33,10 @@ ResearchOS/
 │   │   │   │   ├── task/           # 任务模块（GTD 看板拖拽）
 │   │   │   │   ├── pomodoro/       # 番茄钟模块（计时+热力图）
 │   │   │   │   └── ai/             # AI 模块（直连 LLM + 工具调用）
+  │   │   │   │   ├── note/           # 笔记模块（TipTap 编辑器）
+  │   │   │   │   ├── reference/      # 文献管理模块（PDF + 批注）
+  │   │   │   │   ├── weather/        # 天气模块（和风天气 API）
+  │   │   │   │   └── settings/       # 设置模块（用户偏好配置）
 │   │   │   ├── shared/             # PrismaService 等共享能力
 │   │   │   ├── filters/            # 全局异常过滤器
 │   │   │   ├── main.ts             # 入口
@@ -43,6 +48,10 @@ ResearchOS/
 │       ├── src/
 │       │   ├── modules/
 │       │   │   ├── auth/           # 登录/注册页面
+  │       │   │   ├── note/           # 笔记编辑器
+  │       │   │   ├── reference/      # 文献库与 PDF 阅读器
+  │       │   │   ├── dashboard/      # 首页仪表盘 widget
+  │       │   │   └── settings/       # 设置页面（8 个分类）
 │       │   │   ├── calendar/       # 日历视图
 │       │   │   ├── task/           # 任务看板
 │       │   │   ├── pomodoro/       # 番茄钟面板
@@ -120,6 +129,10 @@ ResearchOS/
 | `TaskModule` | ✅ | GTD 三级任务、拖拽排序、优先级、番茄数关联 |
 | `PomodoroModule` | ✅ | 专注计时、中断追踪、今日/历史统计 API |
 | `AiModule` | ✅ | SSE 流式对话、Function Calling 工具循环、Kimi Coding 直连 |
+| `NoteModule` | ✅ | TipTap 编辑器、CRUD、搜索、标签、文件夹树 |
+| `ReferenceModule` | ✅ | PDF 上传/阅读/批注、DOI 导入、引用导出、语义检索 |
+| `WeatherModule` | ✅ | 和风天气 API、Redis 三层缓存、前端 widget |
+| `SettingsModule` | ✅ | 用户偏好持久化（外观/AI/番茄钟/日程/文献/通知/数据） |
 
 ### AI 模块架构
 
