@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, IsNumber, IsIn, Min, Max } from 'class-validator';
-import { TaskStatus } from '@phd/shared-types';
+import { TaskStatus } from '@research/shared-types';
 
 export class UpdateTaskDto {
   @ApiPropertyOptional({ description: '任务标题' })

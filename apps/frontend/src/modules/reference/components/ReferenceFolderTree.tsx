@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Folder, FolderOpen, ChevronRight, ChevronDown, Plus, BookOpen, X, Check } from 'lucide-react';
-import type { ReferenceFolderResponseDto } from '@phd/shared-types';
+import type { ReferenceFolderResponseDto } from '@research/shared-types';
 
 interface Props {
   folders: ReferenceFolderResponseDto[];

@@ -5,7 +5,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@ne
 import { TaskService } from './task.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateTaskDto, UpdateTaskDto, MoveTaskDto } from './dto';
-import { TaskStatus } from '@phd/shared-types';
+import { TaskStatus } from '@research/shared-types';
 
 @ApiTags('任务管理')
 @UseGuards(JwtAuthGuard)

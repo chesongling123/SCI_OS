@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { CheckSquare, ArrowRight } from 'lucide-react';
 import { useTasks, useUpdateTask } from '../../../hooks/useTasks';
-import { TaskStatus } from '@phd/shared-types';
-import type { TaskResponseDto } from '@phd/shared-types';
+import { TaskStatus } from '@research/shared-types';
+import type { TaskResponseDto } from '@research/shared-types';
 import { DashboardCard, LoadingSkeleton, EmptyState } from './TodayTimeline';
 
 /**

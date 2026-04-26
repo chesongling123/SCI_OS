@@ -1,5 +1,5 @@
 {
-  "name": "@phd/frontend",
+  "name": "@research/frontend",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "@fullcalendar/interaction": "^6.1.0",
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.0",
-    "@phd/shared-types": "workspace:*",
+    "@research/shared-types": "workspace:*",
     "@radix-ui/react-slot": "^1.1.0",
     "@tanstack/react-query": "^5.0.0",
     "@tiptap/extension-bubble-menu": "^3.22.4",

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsIn } from 'class-validator';
-import { TaskStatus } from '@phd/shared-types';
+import { TaskStatus } from '@research/shared-types';
 
 export class MoveTaskDto {
   @ApiProperty({ description: '目标状态', enum: TaskStatus })

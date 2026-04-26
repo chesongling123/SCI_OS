@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { TaskStatus } from '@phd/shared-types';
-import type { CreateTaskDto, UpdateTaskDto, MoveTaskDto, TaskResponseDto } from '@phd/shared-types';
+import { TaskStatus } from '@research/shared-types';
+import type { CreateTaskDto, UpdateTaskDto, MoveTaskDto, TaskResponseDto } from '@research/shared-types';
 import { authHeaders } from '../lib/api';
 
 const API_BASE = '/api/v1/tasks';

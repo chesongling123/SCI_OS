@@ -22,7 +22,7 @@ async function query<T = unknown>(sql: string, params?: unknown[]): Promise<T[]>
 }
 
 async function getUserId(): Promise<string> {
-  if (process.env.PHD_USER_ID) return process.env.PHD_USER_ID;
+  if (process.env.RESEARCH_USER_ID) return process.env.RESEARCH_USER_ID;
   const rows = await query<{ id: string }>('SELECT id FROM users ORDER BY createdAt LIMIT 1');
   if (!rows.length) throw new Error('No user found in database');
   return rows[0].id;
@@ -72,7 +72,7 @@ const TOOLS = [
 
 // ── Server 设置 ──
 const server = new Server(
-  { name: 'phd-pomodoro-mcp', version: '1.0.0' },
+  { name: 'research-pomodoro-mcp', version: '1.0.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -192,4 +192,4 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 // ── 启动 ──
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('PhD Pomodoro MCP Server running on stdio');
+console.error('Research Pomodoro MCP Server running on stdio');

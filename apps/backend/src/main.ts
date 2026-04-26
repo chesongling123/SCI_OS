@@ -34,8 +34,8 @@ async function bootstrap() {
 
   // Swagger 文档
   const config = new DocumentBuilder()
-    .setTitle('PhD_OS API')
-    .setDescription('AI 驱动的博士科研工作台 —— 后端 API 文档')
+    .setTitle('ResearchOS API')
+    .setDescription('AI 驱动的科研工作台 —— 后端 API 文档')
     .setVersion('0.0.1')
     .addBearerAuth()
     .build();

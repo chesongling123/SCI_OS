@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { CheckSquare, Loader2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { TaskStatus } from '@phd/shared-types';
-import type { CreateTaskDto, MoveTaskDto, TaskResponseDto } from '@phd/shared-types';
+import { TaskStatus } from '@research/shared-types';
+import type { CreateTaskDto, MoveTaskDto, TaskResponseDto } from '@research/shared-types';
 import { useTasks, useCreateTask, useUpdateTask, useMoveTask, useDeleteTask } from '../../hooks/useTasks';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import TaskBoard from './TaskBoard';

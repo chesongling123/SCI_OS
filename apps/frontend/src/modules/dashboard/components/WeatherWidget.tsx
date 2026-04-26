@@ -16,8 +16,8 @@ import {
 } from 'lucide-react';
 import { useWeather, useRefreshWeather, WeatherCurrent } from '../../../hooks/useWeather';
 
-const CITY_STORAGE_KEY = 'phd-weather-city';
-const WEATHER_CACHE_KEY = 'phd-weather-cache';
+const CITY_STORAGE_KEY = 'research-weather-city';
+const WEATHER_CACHE_KEY = 'research-weather-cache';
 const DEFAULT_CITY = '北京';
 const CACHE_TTL_MS = 1000 * 60 * 60 * 3; // 本地缓存 3 小时
 

@@ -9,7 +9,7 @@
 
 ## 一、设计目标
 
-文献管理是博士科研工作台的核心模块之一。设计目标是让研究者能够：
+文献管理是科研工作台的核心模块之一。设计目标是让研究者能够：
 
 1. **统一收纳** —— PDF 上传、DOI 自动抓取、Zotero 导入、手动录入，多来源归集
 2. **结构化组织** —— 标签、收藏夹、阅读状态、优先级，替代文件夹混乱
@@ -66,7 +66,7 @@
 
 **入口 D：浏览器扩展（未来）**
 1. 在论文页面点击扩展图标
-2. 一键保存标题、作者、摘要、PDF 链接到 PhD_OS
+2. 一键保存标题、作者、摘要、PDF 链接到 ResearchOS
 
 **入口 E：手动录入**
 1. 表单填写：标题、作者、期刊、年份、卷期页、DOI、URL、摘要
@@ -682,7 +682,7 @@ interface ReferenceUIState {
 
 ### 6.1 新增 AI 工具
 
-在 `AiToolsService` 的 `PHD_OS_TOOLS` 数组中添加以下工具：
+在 `AiToolsService` 的 `RESEARCH_OS_TOOLS` 数组中添加以下工具：
 
 ```typescript
 // 工具 1：获取文献列表
@@ -1017,7 +1017,7 @@ project-root/
 ```bash
 # 通过 DOI 获取元数据
 curl "https://api.crossref.org/works/10.1038/s41586-021-03819-2" \
-  -H "User-Agent: PhD_OS/1.0 (mailto:admin@phd-os.local)"
+  -H "User-Agent: ResearchOS/1.0 (mailto:admin@research-os.local)"
 
 # 返回字段：message.title, message.author[], message.container-title, message.published-print.date-parts, message.DOI, message.abstract, message.link[]
 ```

@@ -6,8 +6,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-// import { ReadingStatus } from '@phd/shared-types';
-import type { ReferenceResponseDto } from '@phd/shared-types';
+// import { ReadingStatus } from '@research/shared-types';
+import type { ReferenceResponseDto } from '@research/shared-types';
 import {
   useReferences,
   useReference,

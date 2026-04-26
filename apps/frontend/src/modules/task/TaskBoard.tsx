@@ -16,10 +16,10 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
-import type { TaskResponseDto } from '@phd/shared-types';
-import { TaskStatus } from '@phd/shared-types';
+import type { TaskResponseDto } from '@research/shared-types';
+import { TaskStatus } from '@research/shared-types';
 import TaskCard from './TaskCard';
-import type { MoveTaskDto } from '@phd/shared-types';
+import type { MoveTaskDto } from '@research/shared-types';
 
 interface TaskBoardProps {
   tasks: TaskResponseDto[];

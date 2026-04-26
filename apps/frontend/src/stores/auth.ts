@@ -29,7 +29,7 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => set({ token: null, user: null, isAuthenticated: false }),
     }),
     {
-      name: 'phd-auth',
+      name: 'research-auth',
     }
   )
 );

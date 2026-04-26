@@ -4,7 +4,7 @@ import {
   ArrowLeft, MessageSquare, X, Highlighter,
   Tag, Calendar, User, FileText, Loader2,
 } from 'lucide-react';
-import type { ReferenceResponseDto } from '@phd/shared-types';
+import type { ReferenceResponseDto } from '@research/shared-types';
 import { useReference, useUpdateReadingStatus, useReferenceNotes, useCreateReferenceNote } from '../../hooks/useReferences';
 import PdfViewer from './components/PdfViewer';
 

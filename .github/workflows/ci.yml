@@ -29,13 +29,13 @@ jobs:
         run: pnpm install
 
       - name: Build shared types
-        run: pnpm -F @phd/shared-types build
+        run: pnpm -F @research/shared-types build
 
       - name: Backend tests
-        run: pnpm -F @phd/backend test
+        run: pnpm -F @research/backend test
 
       - name: Backend build
-        run: pnpm -F @phd/backend build
+        run: pnpm -F @research/backend build
 
   frontend:
     name: Frontend Build & Test
@@ -59,10 +59,10 @@ jobs:
         run: pnpm install
 
       - name: Build shared types
-        run: pnpm -F @phd/shared-types build
+        run: pnpm -F @research/shared-types build
 
       - name: Frontend tests
-        run: pnpm -F @phd/frontend test
+        run: pnpm -F @research/frontend test
 
       - name: Frontend build
-        run: pnpm -F @phd/frontend build
+        run: pnpm -F @research/frontend build

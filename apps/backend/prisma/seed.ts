@@ -18,9 +18,9 @@ async function main() {
 
   // 创建默认用户
   const user = await prisma.user.upsert({
-    where: { email: 'demo@phd-os.local' },
+    where: { email: 'demo@research-os.local' },
     update: {},
-    create: { email: 'demo@phd-os.local', name: '演示用户', password: '$2b$10$cFhE6/.sYggl3eB5nbCEGeUIvlvO4K3BB4u96GZEMzQierFjq9YwG' },
+    create: { email: 'demo@research-os.local', name: '演示用户', password: '$2b$10$cFhE6/.sYggl3eB5nbCEGeUIvlvO4K3BB4u96GZEMzQierFjq9YwG' },
   });
 
   // ========== 任务种子数据 ==========

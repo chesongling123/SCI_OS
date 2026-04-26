@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2, FileText } from 'lucide-react';
-import type { TaskResponseDto } from '@phd/shared-types';
+import type { TaskResponseDto } from '@research/shared-types';
 
 interface TaskCardProps {
   task: TaskResponseDto;

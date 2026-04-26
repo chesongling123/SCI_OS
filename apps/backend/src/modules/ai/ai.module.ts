@@ -9,7 +9,7 @@ import { SharedModule } from '../../shared/shared.module';
 /**
  * AI 模块（直连 LLM API）
  * 支持 Kimi Coding（Anthropic Messages API）和 OpenAI 兼容格式
- * 通过 Function Calling 查询 PhD_OS 内部数据
+ * 通过 Function Calling 查询 ResearchOS 内部数据
  * Phase 3: 新增对话持久化 + 快捷命令
  */
 @Module({

@@ -75,7 +75,7 @@ export default function LoginPage() {
             <BookOpen className="w-6 h-6" />
           </div>
           <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-            PhD Workstation
+            科研生活助手
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
             科研效率工作站

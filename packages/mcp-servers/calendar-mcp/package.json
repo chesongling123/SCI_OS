@@ -1,7 +1,7 @@
 {
-  "name": "@phd/mcp-calendar",
+  "name": "@research/mcp-calendar",
   "version": "1.0.0",
-  "description": "PhD_OS Calendar MCP Server — exposes calendar events to OpenClaw",
+  "description": "ResearchOS Calendar MCP Server — exposes calendar events to OpenClaw",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

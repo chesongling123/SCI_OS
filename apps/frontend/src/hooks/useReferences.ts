@@ -5,7 +5,7 @@ import type {
   ReferenceResponseDto,
   ReferenceFolderResponseDto,
   CreateReferenceFolderDto,
-} from '@phd/shared-types';
+} from '@research/shared-types';
 import { authHeaders } from '../lib/api';
 
 const API_BASE = '/api/v1/references';

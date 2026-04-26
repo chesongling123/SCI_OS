@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Plus } from 'lucide-react';
 import { useEvents } from '../../../hooks/useEvents';
-import type { EventResponseDto } from '@phd/shared-types';
+import type { EventResponseDto } from '@research/shared-types';
 
 /**
  * 获取今日日期范围（ISO 格式）

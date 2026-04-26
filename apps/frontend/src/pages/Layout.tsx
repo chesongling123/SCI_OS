@@ -39,7 +39,7 @@ export default function Layout() {
             >
               ◈
             </div>
-            PhD Workstation
+            科研生活助手
           </Link>
 
           <div className="flex items-center gap-1">

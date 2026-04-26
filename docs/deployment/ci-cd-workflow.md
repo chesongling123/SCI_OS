@@ -2,13 +2,13 @@
 
 > **文档类型**: 工程化运维指南  
 > **最后更新**: 2026-04-23  
-> **适用范围**: 所有参与 PhD_OS 开发的贡献者
+> **适用范围**: 所有参与 ResearchOS 开发的贡献者
 
 ---
 
 ## 一、整体架构：三层防护网
 
-PhD_OS 采用**「本地拦截 + 云端兜底」**的双重质量保障体系，由三个工具协同构成：
+ResearchOS 采用**「本地拦截 + 云端兜底」**的双重质量保障体系，由三个工具协同构成：
 
 | 层级 | 工具 | 作用 | 触发时机 |
 |:---|:---|:---|:---|
@@ -81,13 +81,13 @@ jobs:
         run: pnpm install
 
       - name: Build shared types
-        run: pnpm -F @phd/shared-types build
+        run: pnpm -F @research/shared-types build
 
       - name: Backend tests
-        run: pnpm -F @phd/backend test
+        run: pnpm -F @research/backend test
 
       - name: Backend build
-        run: pnpm -F @phd/backend build
+        run: pnpm -F @research/backend build
 
   frontend:
     name: Frontend Build & Test
@@ -111,13 +111,13 @@ jobs:
         run: pnpm install
 
       - name: Build shared types
-        run: pnpm -F @phd/shared-types build
+        run: pnpm -F @research/shared-types build
 
       - name: Frontend tests
-        run: pnpm -F @phd/frontend test
+        run: pnpm -F @research/frontend test
 
       - name: Frontend build
-        run: pnpm -F @phd/frontend build
+        run: pnpm -F @research/frontend build
 ```
 
 ### 2.2 关键设计说明
@@ -127,7 +127,7 @@ jobs:
 | **并行 Job** | `backend` 和 `frontend` 是两个独立 Job，在 GitHub Actions 中**并行执行**，总耗时 ≈ max(后端时间, 前端时间) |
 | **Node 版本锁定** | 通过 `node-version-file: .nvmrc` 确保 CI 使用的 Node 版本与本地一致 |
 | **pnpm 缓存** | `actions/setup-node` 的 `cache: pnpm` 自动缓存 `node_modules`，加速后续构建 |
-| **先 build shared-types** | 前后端都依赖 `@phd/shared-types` 的 `dist/` 产物，必须先编译 |
+| **先 build shared-types** | 前后端都依赖 `@research/shared-types` 的 `dist/` 产物，必须先编译 |
 
 ### 2.3 查看执行结果
 
@@ -258,7 +258,7 @@ lint-staged 读取【暂存区（staged）文件列表】
 |:---|:---|:---|
 | 为什么 lint-staged 只跑 `typecheck`？ | 暂不引入 ESLint | 前后端 ESLint v9 配置不完整，`tsc --noEmit` 零误报 |
 | 为什么后端 tsconfig 排除 `*.spec.ts`？ | `"exclude": ["**/*.spec.ts", "**/*.mock.ts"]` | Prisma 类型有循环引用，`jest-mock-extended` 会触发 TS2615 编译错误，测试文件不应参与生产构建 |
-| 为什么 CI 里前后端都要先 build shared-types？ | 保证 `@phd/shared-types` 的 `dist/` 产物最新 | 前后端都依赖共享类型包，必须先编译 |
+| 为什么 CI 里前后端都要先 build shared-types？ | 保证 `@research/shared-types` 的 `dist/` 产物最新 | 前后端都依赖共享类型包，必须先编译 |
 | 为什么使用 `pnpm/action-setup@v4`？ | 统一包管理器版本 | 避免 CI 环境与本地环境因 pnpm 版本差异导致行为不一致 |
 
 ---

@@ -396,7 +396,7 @@ export function AiChatPanel({ onClose }: AiChatPanelProps) {
             </div>
             <div>
               <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                PhD_AI 助手
+                科研助手
               </h3>
               <div className="flex items-center gap-1.5">
                 {aiStatus === 'checking' && (
@@ -496,7 +496,7 @@ export function AiChatPanel({ onClose }: AiChatPanelProps) {
               </div>
               <div>
                 <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {selectedConversationId ? '继续对话' : 'PhD_AI 科研助手'}
+                  {selectedConversationId ? '继续对话' : '科研助手'}
                 </p>
                 <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                   {selectedConversationId ? '历史消息已加载' : '直连 LLM · 本地优先'}
