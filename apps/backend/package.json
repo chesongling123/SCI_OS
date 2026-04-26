@@ -44,6 +44,7 @@
     "gray-matter": "^4.0.3",
     "ical.js": "^2.0.0",
     "ioredis": "^5.4.0",
+    "jose": "^6.2.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.0",
     "reflect-metadata": "^0.2.0",

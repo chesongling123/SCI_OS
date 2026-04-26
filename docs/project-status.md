@@ -1,7 +1,7 @@
 # PhD_OS 项目状态追踪
 
 > **文档类型**: 项目进度备忘  
-> **最后更新**: 2026-04-23
+> **最后更新**: 2026-04-26
 > **Phase 2 状态**: ✅ 全部完成  
 > **当前阶段**: ✅ Phase 1 MVP 已完成，进入 Phase 2 扩展
 
@@ -468,3 +468,6 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | 2026-04-24 | Phase 3 AI 对话持久化完成：`AiConversation` + `AiMessage` 模型、`AiConversationService` 对话 CRUD、`AiController.chat` 改造支持历史上下文、前端对话列表 sidebar、`useAiChat` 加载历史、修复 SSE `tool_call` 事件和 `ToolCallIndicator` 图标映射 |
 | 2026-04-24 | Phase 3 AI 快捷命令完成：`AiQuickService` + `LlmService.quickAsk` + `POST /api/v1/ai/quick`、前端 `/` 命令检测面板、translate/polish/summarize 三种命令、打字机效果显示结果 |
 | 2026-04-24 | 工程修复：Prisma Shadow DB 配置（`SHADOW_DATABASE_URL`）、前后端 `pnpm run build` 零错误、Jest 8/8 + Vitest 3/3 测试通过 |
+| 2026-04-26 | 首页仪表盘重构：从 Hero 布局改为模块化多 widget 仪表盘（WelcomeBanner / StatOverview / TodayTimeline / TaskQuickView / PomodoroMini / WeeklyFocusChart / RecentNotes / RecentConversations / WeatherWidget），双栏响应式布局 |
+| 2026-04-26 | 天气模块完成：`WeatherModule` 后端（JWT + API Key 双认证、Redis 三层缓存、Ed25519 Token 缓存、和风天气企业版 API 接入）、`WeatherWidget` 前端（自动加载、localStorage 持久化、城市切换、3 小时缓存周期） |
+| 2026-04-26 | 工程修复：Vite 代理 `localhost` → `127.0.0.1` 解决 IPv6 ECONNREFUSED；全局异常过滤器增加非 HTTP 异常原始错误输出；`SharedModule` 全局导出 `RedisService` |

@@ -22,10 +22,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const rawMessage = exception instanceof Error ? exception.message : String(exception);
     const message =
       exception instanceof HttpException
         ? exception.message
         : '服务器内部错误';
+
+    // 非 HTTP 异常输出原始错误到控制台，便于调试
+    if (!(exception instanceof HttpException)) {
+      console.error('[AllExceptionsFilter] 原始错误:', rawMessage);
+    }
 
     response.status(status).json({
       statusCode: status,

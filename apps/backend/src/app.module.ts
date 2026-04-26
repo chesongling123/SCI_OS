@@ -9,6 +9,7 @@ import { PomodoroModule } from './modules/pomodoro/pomodoro.module';
 import { AiModule } from './modules/ai/ai.module';
 import { NoteModule } from './modules/note/note.module';
 import { ReferenceModule } from './modules/reference/reference.module';
+import { WeatherModule } from './modules/weather/weather.module';
 
 /**
  * 根模块
@@ -50,6 +51,9 @@ import { ReferenceModule } from './modules/reference/reference.module';
 
     // Phase 2 文献管理模块
     ReferenceModule,
+
+    // 天气模块
+    WeatherModule,
   ],
 })
 export class AppModule {}
