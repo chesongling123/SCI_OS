@@ -1,6 +1,6 @@
-# PhD_OS 项目文档
+# ResearchOS 项目文档
 
-AI 驱动的博士科研工作台 —— 开发文档存档
+AI 驱动的科研工作台 —— 开发文档存档
 
 ## 文档目录
 
@@ -29,17 +29,17 @@ AI 驱动的博士科研工作台 —— 开发文档存档
 | 08 | [architecture/08-security.md](architecture/08-security.md) | 安全与隐私设计 |
 | 09 | [architecture/09-repositories.md](architecture/09-repositories.md) | 核心开源仓库汇总 |
 | 10 | [architecture/10-roadmap.md](architecture/10-roadmap.md) | 实施路线图与风险分析 |
-| 完整版 | [architecture/phd_workstation_architecture.md](architecture/phd_workstation_architecture.md) | 未拆分的原始文档（备份） |
+| 完整版 | [architecture/research_workstation_architecture.md](architecture/research_workstation_architecture.md) | 未拆分的原始文档（备份） |
 
 ### 前端 Demo
 
-- **首页 Demo** → [../phd-home-demo.html](../phd-home-demo.html)（位于项目根目录，液态玻璃风格）
+- **首页 Demo** → [../research-home-demo.html](../research-home-demo.html)（位于项目根目录，液态玻璃风格）
 
 ## 项目信息
 
 | 属性 | 值 |
 |------|-----|
-| **名称** | PhD Workstation |
+| **名称** | 科研生活助手 |
 | **定位** | 本地优先、AI 原生的个人科研工作台 |
 | **技术栈** | React 19 + Vite 6 + NestJS 11 + Prisma + PostgreSQL + Redis |
 | **创建日期** | 2026-04-20 |

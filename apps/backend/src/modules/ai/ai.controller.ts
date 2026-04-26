@@ -17,7 +17,7 @@ import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LlmService, LlmMessage } from './llm.service';
-import { AiToolsService, PHD_OS_TOOLS } from './ai-tools.service';
+import { AiToolsService, RESEARCH_OS_TOOLS } from './ai-tools.service';
 import { AiConversationService } from './ai-conversation.service';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import { QuickCommandDto } from './dto/quick-command.dto';
@@ -148,7 +148,7 @@ export class AiController {
       );
 
       // ── 4. 构建系统提示 ──
-      const systemPrompt = `你是 PhD_AI，一位专业的科研助手。你可以帮助用户管理科研任务、查看日程安排、分析番茄钟专注数据、管理文献和笔记。
+      const systemPrompt = `你是 科研助手，一位专业的科研助手。你可以帮助用户管理科研任务、查看日程安排、分析番茄钟专注数据、管理文献和笔记。
 
 当前日期: ${new Date().toLocaleDateString('zh-CN')}
 
@@ -188,7 +188,7 @@ export class AiController {
       // ── 5. 流式对话（内部自动处理工具调用循环）─
       const stream = this.llmService.chatStreamWithTools(
         messages,
-        PHD_OS_TOOLS,
+        RESEARCH_OS_TOOLS,
         (name, input) => this.aiToolsService.execute(name, input, userId),
       );
 

@@ -1,7 +1,7 @@
 {
-  "name": "@phd/mcp-pomodoro",
+  "name": "@research/mcp-pomodoro",
   "version": "1.0.0",
-  "description": "PhD_OS Pomodoro MCP Server — exposes focus time data to OpenClaw",
+  "description": "ResearchOS Pomodoro MCP Server — exposes focus time data to OpenClaw",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

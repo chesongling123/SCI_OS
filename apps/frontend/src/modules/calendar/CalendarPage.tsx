@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '../../hooks/useEvents';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import EventDialog from './EventDialog';
-import type { CreateEventDto, EventResponseDto } from '@phd/shared-types';
+import type { CreateEventDto, EventResponseDto } from '@research/shared-types';
 
 /**
  * 颜色 → CSS 类名映射

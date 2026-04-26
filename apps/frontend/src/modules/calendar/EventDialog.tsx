@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import type { CreateEventDto, EventResponseDto } from '@phd/shared-types';
+import type { CreateEventDto, EventResponseDto } from '@research/shared-types';
 
 interface EventDialogProps {
   open: boolean;

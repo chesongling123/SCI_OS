@@ -122,8 +122,8 @@ export default function NotePage() {
       loadNotes();
       loadFolders();
     };
-    window.addEventListener('phd:note-changed', handleNoteChanged);
-    return () => window.removeEventListener('phd:note-changed', handleNoteChanged);
+    window.addEventListener('research:note-changed', handleNoteChanged);
+    return () => window.removeEventListener('research:note-changed', handleNoteChanged);
   }, [loadNotes, loadFolders]);
 
   // 创建新笔记

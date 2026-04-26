@@ -36,7 +36,7 @@ services:
   # Phase 1 开发可不启动此服务，Phase 2 通过本地 npm 安装 openclaw 运行
   # openclaw:
   #   image: openclaw/gateway:v2026.4.15
-  #   container_name: phd-openclaw
+  #   container_name: research-openclaw
   #   ports:
   #     - "18789:18789"
   #   environment:

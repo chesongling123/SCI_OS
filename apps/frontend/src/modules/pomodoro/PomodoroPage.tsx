@@ -8,7 +8,7 @@ import {
 } from '../../hooks/usePomodoro';
 import { useTasks } from '../../hooks/useTasks';
 import { useReferences } from '../../hooks/useReferences';
-import type { PomodoroSessionResponseDto } from '@phd/shared-types';
+import type { PomodoroSessionResponseDto } from '@research/shared-types';
 
 type PomodoroMode = 'work' | 'shortBreak' | 'longBreak';
 

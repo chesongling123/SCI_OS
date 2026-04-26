@@ -1,7 +1,7 @@
 {
-  "name": "@phd/mcp-task",
+  "name": "@research/mcp-task",
   "version": "1.0.0",
-  "description": "PhD_OS Task MCP Server — exposes task data to OpenClaw",
+  "description": "ResearchOS Task MCP Server — exposes task data to OpenClaw",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

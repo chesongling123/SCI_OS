@@ -1,5 +1,5 @@
 {
-  "name": "@phd/shared-types",
+  "name": "@research/shared-types",
   "version": "0.0.1",
   "description": "前后端共享类型定义",
   "type": "module",

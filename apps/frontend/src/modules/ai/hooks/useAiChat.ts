@@ -18,7 +18,7 @@ async function* mockStream(userMessage: string): AsyncGenerator<string> {
   } else if (lower.includes('日程') || lower.includes('会议')) {
     response = '今天你有 2 个日程：14:00 组会汇报、16:30 导师讨论。明天的日程目前为空，可以安排深度工作。';
   } else if (lower.includes('你好') || lower.includes('hi')) {
-    response = '你好！我是你的 PhD_AI 科研助手。我可以帮你查看任务进度、分析专注数据、搜索文献，或者生成研究日记。有什么可以帮你的吗？';
+    response = '你好！我是你的 科研助手。我可以帮你查看任务进度、分析专注数据、搜索文献，或者生成研究日记。有什么可以帮你的吗？';
   } else {
     response = '收到你的问题。我目前处于离线模式，AI 服务暂时不可用。你可以尝试问我关于「任务」「番茄钟」「日程」的问题来体验模拟回复。';
   }
@@ -206,7 +206,7 @@ export function useAiChat(conversationId?: string | null) {
           (t) => t.tool === 'create_note' || t.tool === 'update_note'
         );
         if (hasNoteOperation) {
-          window.dispatchEvent(new CustomEvent('phd:note-changed'));
+          window.dispatchEvent(new CustomEvent('research:note-changed'));
         }
 
         setMessages((prev) =>

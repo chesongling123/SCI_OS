@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsInt, IsArray, IsNumber, IsEnum } from 'class-validator';
-import { ReadingStatus, LiteratureType } from '@phd/shared-types';
+import { ReadingStatus, LiteratureType } from '@research/shared-types';
 
 /**
  * 创建文献 DTO

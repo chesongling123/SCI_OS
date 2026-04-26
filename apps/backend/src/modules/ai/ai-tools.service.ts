@@ -8,7 +8,7 @@ import { TaskStatus } from '@prisma/client';
  * AI 工具定义 —— Anthropic native format (name + input_schema)
  * Kimi Coding API 要求此格式，不接受 OpenAI function format
  */
-export const PHD_OS_TOOLS = [
+export const RESEARCH_OS_TOOLS = [
   {
     name: 'get_tasks',
     description: '查询用户的任务列表，支持按状态和优先级筛选',

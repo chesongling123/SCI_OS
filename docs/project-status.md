@@ -1,9 +1,11 @@
-# PhD_OS 项目状态追踪
+# ResearchOS 项目状态追踪
 
 > **文档类型**: 项目进度备忘  
 > **最后更新**: 2026-04-26
 > **Phase 2 状态**: ✅ 全部完成  
 > **当前阶段**: ✅ Phase 1 MVP 已完成，进入 Phase 2 扩展
+>
+> 📝 **最新变更**: [2026-04-26] 品牌重命名 —— 项目定位从"博士科研工作台"扩展为"科研生活助手"。全量替换 `PhD/博士` → `ResearchOS/科研生活助手`，详见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -27,7 +29,7 @@
 |:---|:---|:---|
 | React 19 + Vite 6 + TypeScript 5.5 | ✅ | 生产构建通过（~91KB JS gzip，代码分割后） |
 | Tailwind CSS 3.4 + tailwindcss-animate | ✅ | 配置完成 |
-| 液态玻璃设计系统 | ✅ | CSS 变量完整迁移自 `phd-home-demo.html`，含浅色/深色双主题 |
+| 液态玻璃设计系统 | ✅ | CSS 变量完整迁移自 `research-home-demo.html`，含浅色/深色双主题 |
 | shadcn/ui 基础工具（`cn` 函数） | ✅ | `clsx` + `tailwind-merge` |
 | 路由系统（React Router v6） | ✅ | `/` 首页、`/calendar`、`/tasks`、`/pomodoro`、`/ai` |
 | 主题状态管理（Zustand） | ✅ | `data-theme="dark"` 切换 + localStorage 持久化 |
@@ -109,7 +111,7 @@
 |:---|:---|:---|
 | `docker compose` 不可用 | Docker Desktop 未启动 | `open -a Docker` 启动后解决 |
 | `pull access denied for openclaw/gateway` | 镜像不存在于公开仓库 | 注释掉 docker-compose.yml 中的 openclaw 服务；AI 改为直连 LLM |
-| `P1010: User phd was denied access` | 宿主机 PostgreSQL 14 占用 5432 端口 | 将 Docker PostgreSQL 映射到 **5433:5432**，同步更新 `.env` |
+| `P1010: User research was denied access` | 宿主机 PostgreSQL 14 占用 5432 端口 | 将 Docker PostgreSQL 映射到 **5433:5432**，同步更新 `.env` |
 | `EADDRINUSE: address already in use :::3000` | 之前测试的后端进程未退出 | 执行 `kill $(lsof -t -i:3000)` 即可 |
 
 ---
@@ -121,21 +123,21 @@
 ```bash
 # 2026-04-22
 $ pnpm install          # ✅ 成功，bcrypt/Prisma 编译通过
-$ pnpm -F @phd/shared-types build   # ✅ tsc 零错误
-$ pnpm -F @phd/frontend build       # ✅ Vite 零错误，~91KB JS gzip
-$ pnpm -F @phd/backend build        # ✅ NestJS 零错误
+$ pnpm -F @research/shared-types build   # ✅ tsc 零错误
+$ pnpm -F @research/frontend build       # ✅ Vite 零错误，~91KB JS gzip
+$ pnpm -F @research/backend build        # ✅ NestJS 零错误
 ```
 
 ### 2.2 运行时测试
 
 ```bash
 # 前端 dev server
-$ pnpm -F @phd/frontend dev
+$ pnpm -F @research/frontend dev
 # ✅ VITE v6.4.2 ready in 211 ms
 # ✅ Local: http://localhost:5173/
 
 # 后端 dev server（数据库连接成功后）
-$ pnpm -F @phd/backend start:dev
+$ pnpm -F @research/backend start:dev
 # ✅ [NestFactory] Starting Nest application...
 # ✅ SharedModule dependencies initialized    ← Prisma 连接 PostgreSQL 成功
 # ✅ AppModule / AuthModule / CalendarModule / TaskModule / PomodoroModule / AiModule 全部初始化
@@ -143,8 +145,8 @@ $ pnpm -F @phd/backend start:dev
 
 # Docker 服务
 $ pnpm docker:up
-# ✅ Container phd-postgres Started
-# ✅ Container phd-redis Started
+# ✅ Container research-postgres Started
+# ✅ Container research-redis Started
 
 # 数据库连接验证
 $ psql -h 127.0.0.1 -p 5433 -U phd -d phd_os -c "\dt"
@@ -215,8 +217,8 @@ PATCH /api/v1/tasks/:id/move → ✅ 跨列拖拽，sortOrder 重新计算
 DELETE /api/v1/tasks/:id     → ✅ 软删除，deletedAt 标记
 
 # 构建测试
-pnpm -F @phd/backend build   → ✅ 零错误
-pnpm -F @phd/frontend build  → ✅ 零错误
+pnpm -F @research/backend build   → ✅ 零错误
+pnpm -F @research/frontend build  → ✅ 零错误
 ```
 
 ### 3.2 日程管理模块（✅ 已完成）
@@ -348,8 +350,8 @@ POST /api/v1/ai/chat (SSE) → ✅ 流式返回 token，工具调用正常触发
 ✅ Mapped {/api/v1/notes/:id, DELETE}
 
 # 构建测试
-pnpm -F @phd/backend build  → ✅ 零错误
-pnpm -F @phd/frontend build → ✅ 零错误
+pnpm -F @research/backend build  → ✅ 零错误
+pnpm -F @research/frontend build → ✅ 零错误
 ```
 
 ---
@@ -386,7 +388,7 @@ pnpm -F @phd/frontend build → ✅ 零错误
 |:---|:---|:---|
 | Prisma 自引用关系类型推断 | 需 `as any` 绕过 | 锁定 Prisma 6.6.0，Phase 2 评估升级 |
 | ~~前端 chunk > 500KB~~ | ~~构建警告~~ | ~~Phase 2 用 `React.lazy` 代码分割~~ ✅ **已解决**：路由级 `React.lazy` + `manualChunks` 拆 vendor，首屏 JS 从 191KB 降至 ~91KB gzip |
-| 默认用户硬编码 | 所有数据关联 demo@phd-os.local | Phase 2 完善用户系统后移除 |
+| 默认用户硬编码 | 所有数据关联 demo@research-os.local | Phase 2 完善用户系统后移除 |
 | OpenClaw 未通过 Docker 集成 | 镜像不存在于公开仓库 | ✅ **已解决**：AI 层改为直连 LLM（Kimi Coding），不再依赖 OpenClaw Gateway |
 
 ### 4.4 Phase 2 规划
@@ -409,7 +411,7 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | `@dnd-kit/core` 实际最新版为 6.x | 架构文档写 7.0+，实际不存在 | 已修正为 `^6.3.0`，后续跟进官方发布 |
 | 宿主机 PostgreSQL 14 占用 5432 | 需要记住开发端口是 5433 | 已在文档和 `.env` 中明确标注 |
 | 端口 3000 残留进程 | 后端异常退出后可能残留 | `kill $(lsof -t -i:3000)` 即可恢复 |
-| `create_task` AI 工具未注册 | LLM 无法通过工具调用创建任务 | ✅ 已修复：补全 `PHD_OS_TOOLS` 定义 |
+| `create_task` AI 工具未注册 | LLM 无法通过工具调用创建任务 | ✅ 已修复：补全 `RESEARCH_OS_TOOLS` 定义 |
 | 前端 TS 编译错误 | `ReferenceReader`/`PdfViewer`/`TaskPage`/`useReferences` 有类型/未使用错误 | ✅ 已修复：`tsc -b && vite build` 全量通过 |
 
 ---
@@ -463,7 +465,7 @@ pnpm -F @phd/frontend build → ✅ 零错误
 | 2026-04-23 | 跨模块联动 Phase 1/2：Task↔Reference（任务卡片显示文献标题、任务弹窗可选文献、文献详情可创建精读任务）、Note↔Reference（笔记编辑器可选关联文献、文献详情可写读书笔记） |
 | 2026-04-23 | RAG 语义检索完成：EmbeddingService（豆包 Ark API）、notes/references 的 `vector(1024)` 字段、`semanticSearch` API、AI 工具 `search_notes`/`search_references` 支持 `semantic` 标志 |
 | 2026-04-23 | DOI 导入 + 引用导出完成：`DoiImporterService`（CrossRef API）、`CitationService`（5 种格式：bibtex/gb7714/apa/mla/chicago）、前端 DOI 导入弹窗、文献详情页引用复制按钮、AI 工具 `import_reference_by_doi` |
-| 2026-04-23 | 编译错误修复：`create_task` AI 工具补注册到 `PHD_OS_TOOLS`、前端 `ReferenceReader.tsx`/`PdfViewer.tsx`/`TaskPage.tsx`/`useReferences.ts` TypeScript 错误清零、前后端 `pnpm run build` 全量通过 |
+| 2026-04-23 | 编译错误修复：`create_task` AI 工具补注册到 `RESEARCH_OS_TOOLS`、前端 `ReferenceReader.tsx`/`PdfViewer.tsx`/`TaskPage.tsx`/`useReferences.ts` TypeScript 错误清零、前后端 `pnpm run build` 全量通过 |
 | 2026-04-23 | Pomodoro 联动补完：`CreateSessionDto` 新增 `referenceId`；`PomodoroService.end()` 事务内联动更新 `Task.pomodoroCount` / `Reference.totalReadTime/readCount/lastReadAt`；查询全量 `include` 关联对象；前端 PomodoroPage 新增任务/文献选择器；会话列表展示关联名称；前后端构建零错误 |
 | 2026-04-24 | Phase 3 AI 对话持久化完成：`AiConversation` + `AiMessage` 模型、`AiConversationService` 对话 CRUD、`AiController.chat` 改造支持历史上下文、前端对话列表 sidebar、`useAiChat` 加载历史、修复 SSE `tool_call` 事件和 `ToolCallIndicator` 图标映射 |
 | 2026-04-24 | Phase 3 AI 快捷命令完成：`AiQuickService` + `LlmService.quickAsk` + `POST /api/v1/ai/quick`、前端 `/` 命令检测面板、translate/polish/summarize 三种命令、打字机效果显示结果 |

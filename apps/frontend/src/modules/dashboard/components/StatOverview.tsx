@@ -4,7 +4,7 @@ import { useTasks } from '../../../hooks/useTasks';
 import { useEvents } from '../../../hooks/useEvents';
 import { useTodayStats } from '../../../hooks/usePomodoro';
 import { useReferences } from '../../../hooks/useReferences';
-import { TaskStatus } from '@phd/shared-types';
+import { TaskStatus } from '@research/shared-types';
 
 /**
  * 格式化秒数为可读时长

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, BookOpen } from 'lucide-react';
-import type { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from '@phd/shared-types';
-import { TaskStatus } from '@phd/shared-types';
+import type { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from '@research/shared-types';
+import { TaskStatus } from '@research/shared-types';
 import { useReferences } from '../../hooks/useReferences';
 
 interface TaskDialogProps {

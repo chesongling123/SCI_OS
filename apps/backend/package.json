@@ -1,8 +1,8 @@
 {
-  "name": "@phd/backend",
+  "name": "@research/backend",
   "version": "0.0.1",
-  "description": "PhD_OS NestJS 后端服务",
-  "author": "PhD_OS Team",
+  "description": "ResearchOS NestJS 后端服务",
+  "author": "ResearchOS Team",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -34,7 +34,7 @@
     "@nestjs/swagger": "^11.0.0",
     "@nestjs/throttler": "^6.0.0",
     "@nestjs/websockets": "^11.0.0",
-    "@phd/shared-types": "workspace:*",
+    "@research/shared-types": "workspace:*",
     "@prisma/client": "6.6.0",
     "bcrypt": "^5.1.0",
     "bullmq": "^5.0.0",

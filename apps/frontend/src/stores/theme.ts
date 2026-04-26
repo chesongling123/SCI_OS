@@ -28,7 +28,7 @@ export const useThemeStore = create<ThemeState>()(
       }),
     }),
     {
-      name: 'phd-theme',
+      name: 'research-theme',
       onRehydrateStorage: () => (state) => {
         if (state?.isDark) {
           document.documentElement.setAttribute('data-theme', 'dark');

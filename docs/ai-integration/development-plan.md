@@ -1,6 +1,6 @@
-# PhD_OS AI 助手开发计划
+# ResearchOS AI 助手开发计划
 
-> 基于 `phd-os-harness` 工程框架，为 PhD_OS 科研工作台集成 OpenClaw AI 能力。
+> 基于 `research-os-harness` 工程框架，为 ResearchOS 科研工作台集成 OpenClaw AI 能力。
 > **适用场景**：本地单机使用，无上线部署需求。
 > **最后更新**：2026-04-22
 
@@ -8,7 +8,7 @@
 
 ## 一、总体目标
 
-在 PhD_OS 中构建一个**本地优先、AI 原生**的科研助手，能够：
+在 ResearchOS 中构建一个**本地优先、AI 原生**的科研助手，能够：
 
 1. **自然语言对话** —— 用户通过聊天界面与 AI 交流
 2. **数据感知** —— AI 能读取用户的任务、日程、番茄钟数据（通过 MCP）
@@ -58,7 +58,7 @@
                     ↓                    ↓
             快速返回(~300ms)      Agent推理 → MCP调用
                                           ↓
-                                   phd-pomodoro / phd-task
+                                   research-pomodoro / research-task
                                           ↓
                                     SSE 流式返回前端
 ```
@@ -68,21 +68,21 @@
 ```
 本地机器 (localhost)
 │
-├─ PostgreSQL  :5433    ← 已有，PhD_OS 数据
+├─ PostgreSQL  :5433    ← 已有，ResearchOS 数据
 ├─ Redis       :6379    ← 已有，缓存/队列
-├─ PhD_OS Frontend :5173  ← 已有，React dev server
-├─ PhD_OS Backend  :3000  ← 已有，NestJS API
+├─ ResearchOS Frontend :5173  ← 已有，React dev server
+├─ ResearchOS Backend  :3000  ← 已有，NestJS API
 │
 └─ OpenClaw Gateway :18789  ← 新增，需单独安装
      │
      ├─ Agent Runtime (pi-mono)
-     ├─ MCPorter ──→ phd-pomodoro MCP (Docker)
-     │             → phd-task MCP (Docker)
-     │             → phd-calendar MCP (Docker)
+     ├─ MCPorter ──→ research-pomodoro MCP (Docker)
+     │             → research-task MCP (Docker)
+     │             → research-calendar MCP (Docker)
      │             → zotero-mcp (Docker, 可选)
      │             → arxiv-mcp (Docker, 可选)
      ├─ Supermemory (跨会话记忆)
-     └─ Skills: phd-ai-diary, phd-literature-search, phd-smart-schedule
+     └─ Skills: research-ai-diary, research-literature-search, research-smart-schedule
 ```
 
 ---
@@ -93,8 +93,8 @@
 |:---|:---|:---|:---|
 | **Phase A** | 环境搭建 + 基础连接 | Gateway 安装、后端 WebSocket Client、健康检查接口 | 1-1.5h |
 | **Phase B** | 前端聊天面板 | SSE 流式对话 UI、液态玻璃风格、打字机效果 | 1.5-2h |
-| **Phase C** | MCP Servers | phd-pomodoro、phd-task、phd-calendar 三个 MCP Server | 2-2.5h |
-| **Phase D** | Skills | phd-ai-diary、phd-literature-search、phd-smart-schedule | 1-1.5h |
+| **Phase C** | MCP Servers | research-pomodoro、research-task、research-calendar 三个 MCP Server | 2-2.5h |
+| **Phase D** | Skills | research-ai-diary、research-literature-search、research-smart-schedule | 1-1.5h |
 | **Phase E** | 工具调用可视化 | 前端展示 AI 正在调用的工具、加载状态、结果 | 1h |
 | **Phase F** | Direct LLM 快路径 | 简单任务绕过 OpenClaw，直接调用 LiteLLM | 1h |
 
@@ -107,7 +107,7 @@
 ### 4.1 OpenClaw Gateway 安装
 
 ```bash
-# PhD_OS 用 Node.js 20，OpenClaw 需要 Node.js 22+
+# ResearchOS 用 Node.js 20，OpenClaw 需要 Node.js 22+
 # 使用 nvm 切换到 22+ 后执行
 npm install -g openclaw@latest
 
@@ -169,7 +169,7 @@ apps/backend/src/modules/openclaw/
    ```env
    OPENCLAW_GATEWAY_URL=ws://127.0.0.1:18789
    OPENCLAW_GATEWAY_TOKEN=your-gateway-auth-token
-   OPENCLAW_DEFAULT_SKILL=phd-research-assistant
+   OPENCLAW_DEFAULT_SKILL=research-assistant
    LITELLM_API_KEY=your-litellm-key
    ```
 
@@ -256,7 +256,7 @@ apps/frontend/src/modules/ai/
 
 ### 6.1 为什么需要自定义 MCP Servers
 
-OpenClaw Gateway 自带的 MCP Servers（如 arXiv、Zotero）是通用工具，无法直接访问 PhD_OS 的本地数据库。需要自建 MCP Servers 来暴露用户的**任务、日程、番茄钟**数据。
+OpenClaw Gateway 自带的 MCP Servers（如 arXiv、Zotero）是通用工具，无法直接访问 ResearchOS 的本地数据库。需要自建 MCP Servers 来暴露用户的**任务、日程、番茄钟**数据。
 
 ### 6.2 项目结构
 
@@ -275,7 +275,7 @@ packages/mcp-servers/            ← 新增 workspace package
 
 **pnpm-workspace.yaml** 中需添加 `packages/mcp-servers/*`。
 
-### 6.3 phd-pomodoro MCP Server
+### 6.3 research-pomodoro MCP Server
 
 **暴露工具**：
 
@@ -290,7 +290,7 @@ packages/mcp-servers/            ← 新增 workspace package
 
 **注意**：当前为本地单机使用，用户筛选暂时用 `userId` 子查询（从 JWT token 解析），后续如需多用户可升级。
 
-### 6.4 phd-task MCP Server
+### 6.4 research-task MCP Server
 
 **暴露工具**：
 
@@ -301,7 +301,7 @@ packages/mcp-servers/            ← 新增 workspace package
 | `get_tasks_by_status` | 按状态获取任务列表 | `status` |
 | `get_task_stats` | 获取任务统计（完成率/延期率） | `days?` |
 
-### 6.5 phd-calendar MCP Server
+### 6.5 research-calendar MCP Server
 
 **暴露工具**：
 
@@ -319,19 +319,19 @@ packages/mcp-servers/            ← 新增 workspace package
 ```json
 {
   "mcpServers": {
-    "phd-pomodoro": {
+    "research-pomodoro": {
       "command": "docker",
       "args": [
         "run", "--rm", "-i",
         "-e", "DATABASE_URL=postgresql://phd:phd@host.docker.internal:5433/phd_os",
-        "-v", "/path/to/phd-os/packages/mcp-servers/pomodoro-mcp/dist:/app",
+        "-v", "/path/to/research-os/packages/mcp-servers/pomodoro-mcp/dist:/app",
         "-w", "/app",
         "node:20-alpine",
         "node", "/app/index.js"
       ]
     },
-    "phd-task": { "...": "类似结构" },
-    "phd-calendar": { "...": "类似结构" }
+    "research-task": { "...": "类似结构" },
+    "research-calendar": { "...": "类似结构" }
   }
 }
 ```
@@ -342,8 +342,8 @@ packages/mcp-servers/            ← 新增 workspace package
 
 - [ ] `pnpm build` 每个 MCP Server 零错误
 - [ ] `npx @modelcontextprotocol/inspector node dist/index.js` 可列出工具
-- [ ] `openclaw tools list` 显示 `phd-pomodoro/get_today_sessions` 等
-- [ ] `openclaw tools call phd-pomodoro get_today_sessions` 返回正确数据
+- [ ] `openclaw tools list` 显示 `research-pomodoro/get_today_sessions` 等
+- [ ] `openclaw tools call research-pomodoro get_today_sessions` 返回正确数据
 - [ ] `POST /api/v1/ai/tools/discover` 返回完整工具列表
 
 ---
@@ -354,17 +354,17 @@ packages/mcp-servers/            ← 新增 workspace package
 
 ```
 ~/.openclaw/workspace/skills/
-├── phd-research-assistant/      ← 默认通用 Skill
+├── research-assistant/      ← 默认通用 Skill
 │   └── SKILL.md
-├── phd-ai-diary/                ← AI 日记生成
+├── research-ai-diary/                ← AI 日记生成
 │   └── SKILL.md
-├── phd-literature-search/       ← 文献搜索
+├── research-literature-search/       ← 文献搜索
 │   └── SKILL.md
-└── phd-smart-schedule/          ← 智能排程
+└── research-smart-schedule/          ← 智能排程
     └── SKILL.md
 ```
 
-### 7.2 phd-research-assistant（默认通用 Skill）
+### 7.2 research-assistant（默认通用 Skill）
 
 这是 AI 助手的默认行为模式，用户未指定 Skill 时使用。
 
@@ -378,7 +378,7 @@ packages/mcp-servers/            ← 新增 workspace package
 - "在回答之前，先判断是否需要查询用户的任务/日程/番茄钟数据"
 - "使用中文回答，保持专业但友好的语气"
 
-### 7.3 phd-ai-diary
+### 7.3 research-ai-diary
 
 **触发方式**：
 - 用户说"帮我写今天的日记"
@@ -392,7 +392,7 @@ packages/mcp-servers/            ← 新增 workspace package
 5. 生成结构化日记 → Markdown 格式
 6. （可选）保存到笔记系统
 
-### 7.4 phd-literature-search
+### 7.4 research-literature-search
 
 **触发方式**：用户说"帮我找关于 XX 的论文"
 
@@ -404,7 +404,7 @@ packages/mcp-servers/            ← 新增 workspace package
 5. 生成结构化摘要（问题/方法/结果/与用户研究的关联）
 6. 提供"加入 Zotero"/"做笔记"/"找相关"操作选项
 
-### 7.5 phd-smart-schedule
+### 7.5 research-smart-schedule
 
 **触发方式**：用户说"帮我安排下周的计划"
 
@@ -426,13 +426,13 @@ packages/mcp-servers/            ← 新增 workspace package
       {
         "name": "daily-diary",
         "schedule": "0 22 * * *",
-        "skill": "phd-ai-diary",
+        "skill": "research-ai-diary",
         "message": "Generate today's research diary"
       },
       {
         "name": "weekly-literature",
         "schedule": "0 9 * * 1",
-        "skill": "phd-literature-search",
+        "skill": "research-literature-search",
         "message": "Find papers related to active research tasks"
       }
     ]
@@ -442,7 +442,7 @@ packages/mcp-servers/            ← 新增 workspace package
 
 ### 7.7 验证 checklist
 
-- [ ] `openclaw agent --skill phd-ai-diary --message "生成今天的日记"` 成功执行
+- [ ] `openclaw agent --skill research-ai-diary --message "生成今天的日记"` 成功执行
 - [ ] Skill 正确调用了多个 MCP 工具
 - [ ] 输出格式符合 SKILL.md 中定义的模板
 - [ ] 无幻觉数据（缺失数据处显示"暂无数据"）
@@ -475,8 +475,8 @@ packages/mcp-servers/            ← 新增 workspace package
 
 ```typescript
 // tool_call 事件
-{ type: 'tool_call', tool: 'phd-pomodoro/get_today_sessions', status: 'running' }
-{ type: 'tool_call', tool: 'phd-pomodoro/get_today_sessions', status: 'complete', result: '...' }
+{ type: 'tool_call', tool: 'research-pomodoro/get_today_sessions', status: 'running' }
+{ type: 'tool_call', tool: 'research-pomodoro/get_today_sessions', status: 'complete', result: '...' }
 
 // thinking 事件（可选，显示 AI 的推理过程）
 { type: 'thinking', content: '用户问了今日总结，我需要先查番茄钟数据...' }
@@ -587,7 +587,7 @@ export enum ToolCallStatus {
 }
 ```
 
-**修改后必须执行**：`pnpm -F @phd/shared-types build`
+**修改后必须执行**：`pnpm -F @research/shared-types build`
 
 ---
 
@@ -651,8 +651,8 @@ model AiMessage {
 | # | 场景 | 操作 | 预期结果 |
 |:---|:---|:---|:---|
 | 1 | 基础对话 | 打开 AI 面板，输入"你好" | AI 回复问候语，流式显示 |
-| 2 | 数据查询 | 输入"我今天专注了多久" | AI 调用 `phd-pomodoro/get_today_sessions`，返回今日专注时长 |
-| 3 | 任务查询 | 输入"我还有哪些待办任务" | AI 调用 `phd-task/get_active_tasks`，列出待办 |
+| 2 | 数据查询 | 输入"我今天专注了多久" | AI 调用 `research-pomodoro/get_today_sessions`，返回今日专注时长 |
+| 3 | 任务查询 | 输入"我还有哪些待办任务" | AI 调用 `research-task/get_active_tasks`，列出待办 |
 | 4 | 快捷翻译 | 输入 `/translate Abstract: Deep learning...` | 快速返回中文翻译，无工具调用 |
 | 5 | 日记生成 | 输入"帮我写今天的日记" | AI 调用多个 MCP，生成结构化日记 |
 | 6 | 工具可视化 | 输入"分析我这周的专注情况" | 前端显示多个工具调用的进度状态 |
@@ -665,13 +665,13 @@ model AiMessage {
 # 启动全部服务（4 个终端）
 pnpm docker:up                    # Terminal 1: PostgreSQL + Redis
 openclaw gateway start            # Terminal 2: OpenClaw Gateway
-pnpm -F @phd/backend start:dev    # Terminal 3: NestJS
-pnpm -F @phd/frontend dev         # Terminal 4: React
+pnpm -F @research/backend start:dev    # Terminal 3: NestJS
+pnpm -F @research/frontend dev         # Terminal 4: React
 
 # 调试 MCP Server
 openclaw tools list
-openclaw tools call phd-pomodoro get_today_sessions
-openclaw agent --skill phd-ai-diary --message "生成日记"
+openclaw tools call research-pomodoro get_today_sessions
+openclaw agent --skill research-ai-diary --message "生成日记"
 
 # 测试 SSE 接口
 curl -N -X POST http://localhost:3000/api/v1/ai/chat \
@@ -714,4 +714,4 @@ curl -N -X POST http://localhost:3000/api/v1/ai/chat \
 
 ---
 
-*本计划由 AI 编码助手基于 `phd-os-harness` 框架生成，实施过程中可根据实际情况调整优先级和范围。*
+*本计划由 AI 编码助手基于 `research-os-harness` 框架生成，实施过程中可根据实际情况调整优先级和范围。*

@@ -4,7 +4,7 @@ import type {
   EndPomodoroDto,
   PomodoroSessionResponseDto,
   PomodoroStatsDto,
-} from '@phd/shared-types';
+} from '@research/shared-types';
 import { authHeaders } from '../lib/api';
 
 const API_BASE = '/api/v1/pomodoro';

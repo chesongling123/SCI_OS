@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { CreateEventDto, UpdateEventDto, EventResponseDto } from '@phd/shared-types';
+import type { CreateEventDto, UpdateEventDto, EventResponseDto } from '@research/shared-types';
 import { authHeaders } from '../lib/api';
 
 const API_BASE = '/api/v1/calendar/events';

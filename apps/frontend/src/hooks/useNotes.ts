@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { authHeaders } from '../lib/api';
-import type { NoteResponseDto } from '@phd/shared-types';
+import type { NoteResponseDto } from '@research/shared-types';
 
 export type NoteListItem = Pick<
   NoteResponseDto,

@@ -33,7 +33,7 @@ export class DoiImporterService {
     const url = `${this.baseUrl}/${encodeURIComponent(cleanDoi)}`;
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'PhD_OS/1.0 (mailto:phd-os@example.com)',
+        'User-Agent': 'ResearchOS/1.0 (mailto:research-os@example.com)',
         Accept: 'application/json',
       },
     });
