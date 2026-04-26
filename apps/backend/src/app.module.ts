@@ -10,6 +10,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { NoteModule } from './modules/note/note.module';
 import { ReferenceModule } from './modules/reference/reference.module';
 import { WeatherModule } from './modules/weather/weather.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 /**
  * 根模块
@@ -54,6 +55,9 @@ import { WeatherModule } from './modules/weather/weather.module';
 
     // 天气模块
     WeatherModule,
+
+    // 设置模块
+    SettingsModule,
   ],
 })
 export class AppModule {}

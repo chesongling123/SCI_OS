@@ -55,6 +55,51 @@
 - `packages/mcp-servers/*` MCP Server 名称与控制台输出
 - Docker Compose 容器名、数据库配置（**为兼容现有开发环境，数据库用户名/密码/库名保持原值 `phd`/`phd_dev`/`phd_os`**）
 
+## 2026-04-26 — 设置页面 + CI 单测修复
+
+### 新增功能
+
+#### 1. 设置页面（SettingsModule）
+
+前后端完整实现用户偏好设置系统，支持 8 大分类、30+ 配置项：
+
+| 分类 | 设置项 |
+|:---|:---|
+| **外观** | 主题模式（浅色/深色/跟随系统）、液态玻璃强度、字体大小 |
+| **AI 助手** | LLM 提供商/模型、Temperature、Max Tokens、系统提示词、Function Calling、流式输出、RAG 阈值/文档数 |
+| **番茄钟** | 专注/短休息/长休息时长、自动开始休息/专注、每日目标 |
+| **日程** | 周起始日、默认视图、默认提醒时间 |
+| **文献** | 默认引用格式（GB/T 7714 / APA / MLA / Chicago / BibTeX） |
+| **通知** | 桌面通知、番茄钟提示音、日程提醒 |
+| **数据** | 自动备份、备份频率、数据导出/清除缓存（预留） |
+| **关于** | 版本号、构建时间、GitHub 链接、Issue 反馈 |
+
+**后端实现**：
+- 数据库：`UserSettings` 模型（`prisma/schema.prisma`），与用户一对一关联
+- API：`GET /api/v1/settings`（获取/自动创建默认设置）、`PATCH /api/v1/settings`（更新）
+- DTO：`UpdateSettingsDto` 含 class-validator 校验
+
+**前端实现**：
+- 页面：`/settings` 路由，左侧玻璃导航栏 + 右侧设置面板
+- Store：`useSettingsStore`（Zustand + persist），支持字段级本地更新与批量保存
+- 主题联动：`theme.ts` 升级支持 `light/dark/system` 三种模式 + 系统主题自动监听
+
+#### 2. CI 与单测修复
+
+| 修复项 | 说明 |
+|:---|:---|
+| 前端包名错误 | `@researchos/shared-types` → `@research/shared-types`（2 处） |
+| `import.meta.env` 类型缺失 | 新建 `src/vite-env.d.ts` 声明 |
+| 未使用变量 | `theme.ts` / `settings.ts` 中移除未使用的 `get` |
+| `updateField` 类型签名 | 放宽为 `(key, value: unknown)` 适配 `strict: true` |
+| 后端 Settings 测试 | 新增 `settings.service.spec.ts`（6 例）+ `settings.controller.spec.ts`（2 例） |
+| 前端 Settings 测试 | 新增 `settings.spec.ts`（5 例） |
+
+**验证结果**：
+- 后端：3 suites / 16 tests 全部通过
+- 前端：2 suites / 8 tests 全部通过
+- 前后端 `pnpm run build` 零错误
+
 ### 兼容性说明
 
 - **数据库连接**：为兼容本地已运行的 `phd-postgres` 容器，`.env` 与 `docker-compose.yml` 中的数据库用户名、密码、库名保持原值，未随品牌名变更。

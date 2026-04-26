@@ -391,3 +391,73 @@ export interface ReferenceFolderResponseDto {
   createdAt: string;
   updatedAt: string;
 }
+
+// ============================================
+// 设置模块 DTO
+// ============================================
+
+export interface UserSettingsResponseDto {
+  id: string;
+  userId: string;
+  theme: string;
+  glassIntensity: number;
+  fontSize: string;
+  sidebarCollapsed: boolean;
+  llmProvider: string;
+  llmModel: string;
+  temperature: number;
+  maxTokens: number;
+  systemPrompt: string | null;
+  functionCalling: boolean;
+  ragThreshold: number;
+  ragTopK: number;
+  streamingOutput: boolean;
+  pomodoroFocus: number;
+  pomodoroShortBreak: number;
+  pomodoroLongBreak: number;
+  pomodoroAutoBreak: boolean;
+  pomodoroAutoFocus: boolean;
+  pomodoroDailyGoal: number;
+  weekStart: string;
+  defaultCalendarView: string;
+  defaultReminder: number;
+  defaultCitationFormat: string;
+  desktopNotification: boolean;
+  pomodoroSound: boolean;
+  eventReminder: boolean;
+  autoBackup: boolean;
+  backupFrequency: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateSettingsDto {
+  theme?: 'light' | 'dark' | 'system';
+  glassIntensity?: number;
+  fontSize?: 'small' | 'medium' | 'large';
+  sidebarCollapsed?: boolean;
+  llmProvider?: string;
+  llmModel?: string;
+  temperature?: number;
+  maxTokens?: number;
+  systemPrompt?: string;
+  functionCalling?: boolean;
+  ragThreshold?: number;
+  ragTopK?: number;
+  streamingOutput?: boolean;
+  pomodoroFocus?: number;
+  pomodoroShortBreak?: number;
+  pomodoroLongBreak?: number;
+  pomodoroAutoBreak?: boolean;
+  pomodoroAutoFocus?: boolean;
+  pomodoroDailyGoal?: number;
+  weekStart?: 'monday' | 'sunday';
+  defaultCalendarView?: 'month' | 'week' | 'day';
+  defaultReminder?: number;
+  defaultCitationFormat?: 'gb7714' | 'apa' | 'mla' | 'chicago' | 'bibtex';
+  desktopNotification?: boolean;
+  pomodoroSound?: boolean;
+  eventReminder?: boolean;
+  autoBackup?: boolean;
+  backupFrequency?: 'daily' | 'weekly' | 'monthly';
+}

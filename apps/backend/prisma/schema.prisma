@@ -36,8 +36,65 @@ model User {
   referenceFolders ReferenceFolder[]
   referenceNotes   ReferenceNote[]
   aiConversations  AiConversation[]
+  settings         UserSettings?
 
   @@map("users")
+}
+
+// ============================================
+// 用户设置模块
+// ============================================
+model UserSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 外观设置
+  theme             String   @default("system") // light / dark / system
+  glassIntensity    Int      @default(100) // 0-200%
+  fontSize          String   @default("medium") // small / medium / large
+  sidebarCollapsed  Boolean  @default(false)
+
+  // AI 设置（敏感字段如 apiKey 仅前端状态管理，不持久化到数据库）
+  llmProvider       String   @default("kimi")
+  llmModel          String   @default("k2p5")
+  temperature       Float    @default(0.7)
+  maxTokens         Int      @default(4096)
+  systemPrompt      String?  @db.Text
+  functionCalling   Boolean  @default(true)
+  ragThreshold      Float    @default(0.7)
+  ragTopK           Int      @default(5)
+  streamingOutput   Boolean  @default(true)
+
+  // 番茄钟设置
+  pomodoroFocus      Int   @default(25) // 分钟
+  pomodoroShortBreak Int   @default(5)
+  pomodoroLongBreak  Int   @default(15)
+  pomodoroAutoBreak  Boolean @default(false)
+  pomodoroAutoFocus  Boolean @default(false)
+  pomodoroDailyGoal  Int   @default(8)
+
+  // 日程设置
+  weekStart         String   @default("monday") // monday / sunday
+  defaultCalendarView String @default("month") // month / week / day
+  defaultReminder   Int      @default(15) // 分钟
+
+  // 文献管理设置
+  defaultCitationFormat String @default("gb7714")
+
+  // 通知设置
+  desktopNotification Boolean @default(true)
+  pomodoroSound       Boolean @default(true)
+  eventReminder       Boolean @default(true)
+
+  // 数据设置
+  autoBackup          Boolean @default(false)
+  backupFrequency     String   @default("weekly") // daily / weekly / monthly
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_settings")
 }
 
 // ============================================
