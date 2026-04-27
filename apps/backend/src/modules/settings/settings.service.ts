@@ -71,6 +71,13 @@ export class SettingsService {
     if (dto.autoBackup !== undefined) data.autoBackup = dto.autoBackup;
     if (dto.backupFrequency !== undefined) data.backupFrequency = dto.backupFrequency;
 
+    // 主动建议
+    if (dto.proactiveSuggestions !== undefined) data.proactiveSuggestions = dto.proactiveSuggestions;
+    if (dto.proactiveFrequency !== undefined) data.proactiveFrequency = dto.proactiveFrequency;
+    if (dto.proactiveChannels !== undefined) data.proactiveChannels = dto.proactiveChannels;
+    if (dto.quietHoursStart !== undefined) data.quietHoursStart = dto.quietHoursStart;
+    if (dto.quietHoursEnd !== undefined) data.quietHoursEnd = dto.quietHoursEnd;
+
     return this.prisma.userSettings.update({
       where: { userId },
       data,

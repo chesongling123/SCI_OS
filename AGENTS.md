@@ -1,7 +1,7 @@
 # ResearchOS —— AI 驱动的科研工作台
 
-> **项目阶段**: ✅ Phase 2 扩展已完成（笔记系统 + 文献管理 + RAG 语义检索 + 跨模块联动 + DOI 导入/引用导出）
-> **新增**: ✅ 设置页面（外观/AI/番茄钟/日程/文献/通知/数据/关于）
+> **项目阶段**: ✅ Phase 3 MVP 已完成（主动 AI 子系统：记忆 + 主动建议引擎 + Toast 投递 + Heartbeat + DailyBrief Widget）
+> **新增**: ✅ 主动建议设置（总开关/频率/通知渠道/免打扰时段）
 > **主要语言**: 中文（所有设计文档和注释均以简体中文撰写）
 > **最后更新**: 2026-04-26
 
@@ -132,7 +132,8 @@ ResearchOS/
 | `NoteModule` | ✅ | TipTap 编辑器、CRUD、搜索、标签、文件夹树 |
 | `ReferenceModule` | ✅ | PDF 上传/阅读/批注、DOI 导入、引用导出、语义检索 |
 | `WeatherModule` | ✅ | 和风天气 API、Redis 三层缓存、前端 widget |
-| `SettingsModule` | ✅ | 用户偏好持久化（外观/AI/番茄钟/日程/文献/通知/数据） |
+| `SettingsModule` | ✅ | 用户偏好持久化（外观/AI/番茄钟/日程/文献/通知/数据/**主动建议**） |
+| `ProactiveModule` | ✅ | 主动建议引擎（上下文感知→LLM推理→频率过滤→Toast投递→反馈闭环） |
 
 ### AI 模块架构
 

@@ -11,3 +11,4 @@ export { WeeklyFocusChart } from './components/WeeklyFocusChart';
 export { RecentNotes } from './components/RecentNotes';
 export { RecentConversations } from './components/RecentConversations';
 export { WeatherWidget } from './components/WeatherWidget';
+export { DailyBriefWidget } from './components/DailyBriefWidget';

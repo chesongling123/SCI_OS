@@ -8,6 +8,7 @@ import {
   RecentNotes,
   RecentConversations,
   WeatherWidget,
+  DailyBriefWidget,
 } from '../modules/dashboard';
 
 /**
@@ -29,6 +30,9 @@ export default function Home() {
 
       {/* 统计概览 */}
       <StatOverview />
+
+      {/* AI 每日简报 */}
+      <DailyBriefWidget />
 
       {/* 主内容区 — 双栏布局 */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">

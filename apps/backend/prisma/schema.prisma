@@ -27,16 +27,20 @@ model User {
   updatedAt DateTime  @updatedAt
 
   // 关联
-  events           Event[]
-  tasks            Task[]
-  pomodoroSessions PomodoroSession[]
-  notes            Note[]
-  noteFolders      NoteFolder[]
-  references       Reference[]
-  referenceFolders ReferenceFolder[]
-  referenceNotes   ReferenceNote[]
-  aiConversations  AiConversation[]
-  settings         UserSettings?
+  events              Event[]
+  tasks               Task[]
+  pomodoroSessions    PomodoroSession[]
+  notes               Note[]
+  noteFolders         NoteFolder[]
+  references          Reference[]
+  referenceFolders    ReferenceFolder[]
+  referenceNotes      ReferenceNote[]
+  aiConversations     AiConversation[]
+  settings            UserSettings?
+  suggestions         ProactiveSuggestion[]
+  semanticMemories    UserSemanticMemory[]
+  behaviorPattern     UserBehaviorPattern?
+  conversationSummaries ConversationSummary[]
 
   @@map("users")
 }
@@ -90,6 +94,13 @@ model UserSettings {
   // 数据设置
   autoBackup          Boolean @default(false)
   backupFrequency     String   @default("weekly") // daily / weekly / monthly
+
+  // 主动建议设置（Phase 3）
+  proactiveSuggestions   Boolean  @default(true)   // 总开关
+  proactiveFrequency     String   @default("medium") // low | medium | high
+  proactiveChannels      Json     @default("{\"toast\": true, \"browser\": true, \"inline\": true}")
+  quietHoursStart        String?  @default("23:00")
+  quietHoursEnd          String?  @default("08:00")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -416,4 +427,109 @@ model AiMessage {
 
   @@index([conversationId, createdAt])
   @@map("ai_messages")
+}
+
+// ============================================
+// 主动 AI 子系统 —— Phase 3 新增
+// ============================================
+
+model ProactiveSuggestion {
+  id          String   @id @default(cuid())
+  userId      String
+
+  // 建议内容
+  type        String   // focus_reminder | deadline_warning | break_suggestion | reading_recommendation | daily_brief | pattern_insight | weather_adjust | note_link
+  priority    String   // high | medium | low
+  title       String
+  content     String   @db.Text
+
+  // 可执行动作
+  actionType  String   // navigate | create_task | start_pomodoro | open_reference | dismiss | open_chat
+  actionPayload Json?  // { path, params, referenceId, taskTitle, etc. }
+
+  // 投递状态
+  status      String   @default("pending") // pending | delivered | dismissed | accepted | expired
+  deliveredAt DateTime? @db.Timestamptz(3)
+  expiresAt   DateTime? @db.Timestamptz(3) // 默认 24h 后过期
+
+  // 用户反馈
+  feedback    String?  // accepted | dismissed | snoozed | ignored
+  feedbackAt  DateTime? @db.Timestamptz(3)
+
+  // 上下文（用于调试和优化）
+  context     Json?    // 触发时的完整上下文快照
+  reasoning   String?  @db.Text // LLM 的推理过程
+
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, status, createdAt(sort: Desc)])
+  @@index([userId, type, createdAt])
+  @@map("proactive_suggestions")
+}
+
+model ConversationSummary {
+  id             String   @id @default(cuid())
+  conversationId String   @unique
+  userId         String
+
+  topics         String[]
+  userIntent     String?  @db.Text
+  keyConclusions String[]
+  emotionalTone  String?
+  summary        String   @db.Text
+  embedding      Unsupported("vector(1024)")?
+
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
+
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("conversation_summaries")
+}
+
+model UserSemanticMemory {
+  id           String   @id @default(cuid())
+  userId       String
+
+  memoryType   String   // preference | fact | goal | habit | research_topic
+  key          String
+  value        String   @db.Text
+  confidence   Float    @default(1.0)
+  source       String   // conversation_summary | user_settings | behavior_analysis | explicit
+
+  embedding    Unsupported("vector(1024)")?
+  importance   Float    @default(1.0)
+  lastAccessed DateTime @default(now())
+
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, memoryType, key])
+  @@index([userId, memoryType])
+  @@map("user_semantic_memories")
+}
+
+model UserBehaviorPattern {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+
+  pomodoroProfile Json?
+  taskProfile     Json?
+  readingProfile  Json?
+  calendarProfile Json?
+  productivityScore Float?
+
+  computedAt      DateTime @default(now()) @db.Timestamptz(3)
+  nextComputeAt   DateTime @default(now()) @db.Timestamptz(3)
+
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("user_behavior_patterns")
 }

@@ -45,6 +45,11 @@ const defaultSettings: Omit<SettingsState, 'fetchSettings' | 'updateSettings' | 
   eventReminder: true,
   autoBackup: false,
   backupFrequency: 'weekly',
+  proactiveSuggestions: true,
+  proactiveFrequency: 'medium',
+  proactiveChannels: { toast: true, browser: true, inline: true },
+  quietHoursStart: '23:00',
+  quietHoursEnd: '08:00',
   createdAt: '',
   updatedAt: '',
 };

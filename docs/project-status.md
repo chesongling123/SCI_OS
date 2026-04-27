@@ -104,6 +104,10 @@
 | 工具：get_calendar_events | ✅ | 查询日程事件，支持日期范围 |
 | 工具：get_pomodoro_stats | ✅ | 查询番茄钟统计（今日/本周/本月） |
 | 工具：get_today_summary | ✅ | 获取今日综合概览 |
+| **主动建议引擎** | ✅ | `ProactiveService` 上下文感知 → LLM 推理 → 频率过滤 → 持久化 |
+| **主动建议 API** | ✅ | `POST generate` / `GET` / `POST feedback` / `POST dismiss-all` / `GET stats` |
+| **频率限制** | ✅ | 全局每小时2条/每天5条（按用户设置 low/medium/high 动态调整） |
+| **防打扰机制** | ✅ | 免打扰时段检查、安静时段不生成建议 |
 
 ### 1.9 问题排查记录
 
@@ -453,7 +457,15 @@ pnpm -F @research/frontend build → ✅ 零错误
 - [x] 前端 `/` 命令检测：输入 `/` 弹出命令面板，选中后显示标签
 - [x] 快捷命令打字机效果：结果逐字显示，不保存到数据库
 - [x] Prisma Shadow DB 配置：解决 `migrate dev` 的 pgvector 兼容问题
-- [ ] AI 主动建议：基于番茄钟/日程/任务的智能提醒 Toast（待实现）
+- [x] AI 主动建议 MVP 完成
+  - [x] 数据库：`ProactiveSuggestion` / `ConversationSummary` / `UserSemanticMemory` / `UserBehaviorPattern` 四模型
+  - [x] 设置扩展：`proactiveSuggestions` / `proactiveFrequency` / `proactiveChannels` / `quietHoursStart` / `quietHoursEnd`
+  - [x] 后端骨架：`ProactiveService` + `ProactiveController`，复用 `AiToolsService` + `LlmService.quickAsk()`
+  - [x] 前端投递：`ProactiveToast`（液态玻璃堆叠卡片、优先级色条、自动消失）
+  - [x] 前端轮询：Heartbeat 15min + Page Visibility API
+  - [x] 首页 Widget：`DailyBriefWidget` 仪表盘卡片
+  - [x] AI 面板内联：`InlineSuggestion` 消息列表顶部建议卡片
+  - [x] 反馈闭环：accepted / dismissed / snoozed 三种反馈，本地移除 + API 同步
 
 ---
 
@@ -478,3 +490,4 @@ pnpm -F @research/frontend build → ✅ 零错误
 | 2026-04-26 | 工程修复：Vite 代理 `localhost` → `127.0.0.1` 解决 IPv6 ECONNREFUSED；全局异常过滤器增加非 HTTP 异常原始错误输出；`SharedModule` 全局导出 `RedisService` |
 | 2026-04-26 | 设置页面完成：`UserSettings` Prisma 模型、`SettingsModule` 后端（GET/PATCH API）、`SettingsPage` 前端（8 分类液态玻璃 UI）、`useSettingsStore`（Zustand + persist）、主题 store 升级支持 system 模式 |
 | 2026-04-26 | CI 与单测修复：前端包名错误修复、`vite-env.d.ts` 类型声明、未使用变量清理、`updateField` 签名修复；后端新增 Settings Service/Controller 测试；前端新增 Settings Store 测试；前后端 24 测试全部通过 |
+| 2026-04-26 | **主动 AI 子系统 MVP 完成**：Prisma Schema 追加 4 模型 + `db push` 同步、Settings DTO/Service/Store/Page 主动建议字段、后端 `AiProactiveModule`（`ProactiveService` + `ProactiveController`）、前端 `useProactiveStore` + `ProactiveToast` + `DailyBriefWidget` + `InlineSuggestion`、Layout Heartbeat 轮询，前后端 TypeScript 编译零错误 |
