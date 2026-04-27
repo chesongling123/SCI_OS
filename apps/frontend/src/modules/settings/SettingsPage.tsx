@@ -14,6 +14,7 @@ import {
   Moon,
   Sun,
   Monitor,
+  Sparkles,
 } from 'lucide-react';
 import { useSettingsStore } from '../../stores/settings';
 import { useThemeStore } from '../../stores/theme';
@@ -26,6 +27,7 @@ type SectionKey =
   | 'calendar'
   | 'reference'
   | 'notification'
+  | 'proactive'
   | 'data'
   | 'about';
 
@@ -38,6 +40,7 @@ interface SectionDef {
 const sections: SectionDef[] = [
   { key: 'appearance', label: '外观', icon: Palette },
   { key: 'ai', label: 'AI 助手', icon: Bot },
+  { key: 'proactive', label: '主动建议', icon: Sparkles },
   { key: 'pomodoro', label: '番茄钟', icon: Timer },
   { key: 'calendar', label: '日程', icon: CalendarDays },
   { key: 'reference', label: '文献', icon: BookOpen },
@@ -521,6 +524,81 @@ function ReferenceSection() {
   );
 }
 
+function ProactiveSection() {
+  const {
+    proactiveSuggestions, proactiveFrequency, proactiveChannels,
+    quietHoursStart, quietHoursEnd, updateField,
+  } = useSettingsStore();
+
+  const toggleChannel = (key: 'toast' | 'browser' | 'inline') => {
+    const next = { ...proactiveChannels, [key]: !proactiveChannels[key] };
+    updateField('proactiveChannels', next);
+  };
+
+  return (
+    <GlassCard>
+      <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>主动建议</h3>
+      <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>AI 主动提醒与个性化建议</p>
+
+      <SettingRow label="启用主动建议" description="AI 根据你的日程、任务和行为模式主动发起建议">
+        <Toggle checked={proactiveSuggestions} onChange={(v) => updateField('proactiveSuggestions', v)} />
+      </SettingRow>
+
+      <SettingRow label="建议频率" description="控制每日建议推送的上限">
+        <SegmentedControl
+          value={proactiveFrequency as 'low' | 'medium' | 'high'}
+          options={[
+            { label: '低频', value: 'low' },
+            { label: '中频', value: 'medium' },
+            { label: '高频', value: 'high' },
+          ]}
+          onChange={(v) => updateField('proactiveFrequency', v)}
+        />
+      </SettingRow>
+
+      <SettingRow label="应用内通知（Toast）">
+        <Toggle checked={proactiveChannels.toast} onChange={() => toggleChannel('toast')} />
+      </SettingRow>
+
+      <SettingRow label="浏览器桌面通知">
+        <Toggle checked={proactiveChannels.browser} onChange={() => toggleChannel('browser')} />
+      </SettingRow>
+
+      <SettingRow label="AI 面板内联建议">
+        <Toggle checked={proactiveChannels.inline} onChange={() => toggleChannel('inline')} />
+      </SettingRow>
+
+      <SettingRow label="免打扰开始">
+        <input
+          type="time"
+          value={quietHoursStart ?? '23:00'}
+          onChange={(e) => updateField('quietHoursStart', e.target.value)}
+          className="px-3 py-1.5 text-xs rounded-lg outline-none"
+          style={{
+            background: 'var(--glass-bg-hover)',
+            border: '1px solid var(--glass-border)',
+            color: 'var(--text-primary)',
+          }}
+        />
+      </SettingRow>
+
+      <SettingRow label="免打扰结束">
+        <input
+          type="time"
+          value={quietHoursEnd ?? '08:00'}
+          onChange={(e) => updateField('quietHoursEnd', e.target.value)}
+          className="px-3 py-1.5 text-xs rounded-lg outline-none"
+          style={{
+            background: 'var(--glass-bg-hover)',
+            border: '1px solid var(--glass-border)',
+            color: 'var(--text-primary)',
+          }}
+        />
+      </SettingRow>
+    </GlassCard>
+  );
+}
+
 function NotificationSection() {
   const { desktopNotification, pomodoroSound, eventReminder, updateField } = useSettingsStore();
 
@@ -648,6 +726,7 @@ function AboutSection() {
 const sectionComponents: Record<SectionKey, React.FC> = {
   appearance: AppearanceSection,
   ai: AiSection,
+  proactive: ProactiveSection,
   pomodoro: PomodoroSection,
   calendar: CalendarSection,
   reference: ReferenceSection,
@@ -706,6 +785,11 @@ export default function SettingsPage() {
       eventReminder: state.eventReminder,
       autoBackup: state.autoBackup,
       backupFrequency: state.backupFrequency as UpdateSettingsDto['backupFrequency'],
+      proactiveSuggestions: state.proactiveSuggestions,
+      proactiveFrequency: state.proactiveFrequency as UpdateSettingsDto['proactiveFrequency'],
+      proactiveChannels: state.proactiveChannels,
+      quietHoursStart: state.quietHoursStart ?? null,
+      quietHoursEnd: state.quietHoursEnd ?? null,
     };
     await updateSettings(dto);
     setSaved(true);

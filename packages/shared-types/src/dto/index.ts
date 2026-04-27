@@ -427,6 +427,12 @@ export interface UserSettingsResponseDto {
   eventReminder: boolean;
   autoBackup: boolean;
   backupFrequency: string;
+  // 主动建议
+  proactiveSuggestions: boolean;
+  proactiveFrequency: string;
+  proactiveChannels: { toast: boolean; browser: boolean; inline: boolean };
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -460,4 +466,10 @@ export interface UpdateSettingsDto {
   eventReminder?: boolean;
   autoBackup?: boolean;
   backupFrequency?: 'daily' | 'weekly' | 'monthly';
+  // 主动建议
+  proactiveSuggestions?: boolean;
+  proactiveFrequency?: 'low' | 'medium' | 'high';
+  proactiveChannels?: { toast: boolean; browser: boolean; inline: boolean };
+  quietHoursStart?: string | null;
+  quietHoursEnd?: string | null;
 }

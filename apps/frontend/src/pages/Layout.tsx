@@ -1,8 +1,11 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
+import { useProactiveStore } from '../stores/proactive';
 import { Calendar, CheckSquare, Timer, Home, Moon, Sun, LogOut, User, FileText, BookOpen, Settings } from 'lucide-react';
 import { AiChatButton } from '../modules/ai';
+import { ProactiveToast } from '../modules/ai/components/ProactiveToast';
 
 const navItems = [
   { path: '/', label: '首页', icon: Home },
@@ -17,6 +20,29 @@ export default function Layout() {
   const location = useLocation();
   const { isDark, toggle } = useThemeStore();
   const { user, clearAuth } = useAuthStore();
+  const { fetchPending } = useProactiveStore();
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Heartbeat：页面可见时每 15 分钟拉取一次建议
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === 'visible') {
+        fetchPending();
+      }
+    };
+
+    // 首次加载 + 页面恢复可见时立即检查
+    check();
+    document.addEventListener('visibilitychange', check);
+
+    // 15 分钟定时轮询
+    heartbeatRef.current = setInterval(check, 15 * 60 * 1000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', check);
+      if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+    };
+  }, [fetchPending]);
 
   return (
     <div className="min-h-screen">
@@ -123,6 +149,9 @@ export default function Layout() {
 
       {/* AI 助手浮动按钮 — 全局可访问 */}
       <AiChatButton />
+
+      {/* 主动建议 Toast 投递层 */}
+      <ProactiveToast />
     </div>
   );
 }

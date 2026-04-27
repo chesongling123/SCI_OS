@@ -139,4 +139,24 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsIn(['daily', 'weekly', 'monthly'])
   backupFrequency?: string;
+
+  // 主动建议
+  @IsOptional()
+  @IsBoolean()
+  proactiveSuggestions?: boolean;
+
+  @IsOptional()
+  @IsIn(['low', 'medium', 'high'])
+  proactiveFrequency?: string;
+
+  @IsOptional()
+  proactiveChannels?: Record<string, unknown>;
+
+  @IsOptional()
+  @IsString()
+  quietHoursStart?: string | null;
+
+  @IsOptional()
+  @IsString()
+  quietHoursEnd?: string | null;
 }
