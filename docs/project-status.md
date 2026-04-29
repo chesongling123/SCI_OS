@@ -491,3 +491,4 @@ pnpm -F @research/frontend build → ✅ 零错误
 | 2026-04-26 | 设置页面完成：`UserSettings` Prisma 模型、`SettingsModule` 后端（GET/PATCH API）、`SettingsPage` 前端（8 分类液态玻璃 UI）、`useSettingsStore`（Zustand + persist）、主题 store 升级支持 system 模式 |
 | 2026-04-26 | CI 与单测修复：前端包名错误修复、`vite-env.d.ts` 类型声明、未使用变量清理、`updateField` 签名修复；后端新增 Settings Service/Controller 测试；前端新增 Settings Store 测试；前后端 24 测试全部通过 |
 | 2026-04-26 | **主动 AI 子系统 MVP 完成**：Prisma Schema 追加 4 模型 + `db push` 同步、Settings DTO/Service/Store/Page 主动建议字段、后端 `AiProactiveModule`（`ProactiveService` + `ProactiveController`）、前端 `useProactiveStore` + `ProactiveToast` + `DailyBriefWidget` + `InlineSuggestion`、Layout Heartbeat 轮询，前后端 TypeScript 编译零错误 |
+| 2026-04-29 | **HeaderOverview 仪表盘头部重构**：将 WelcomeBanner + WeatherWidget + DailyBriefWidget 融合为单一模块，天气氛围作为全模块背景（oklch 渐变 + 动态光晕 + 噪点纹理），支持 10 种天气主题（晴/多云/阴/雨/雪/雷/雾/沙尘/昼夜），简报卡片独立玻璃态悬浮，装饰分隔线与心情标签，CSS 动画（drift-slow / pulse-slow），构建零错误 |

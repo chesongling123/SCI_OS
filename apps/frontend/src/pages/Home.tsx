@@ -1,5 +1,5 @@
 import {
-  WelcomeBanner,
+  HeaderOverview,
   StatOverview,
   TodayTimeline,
   TaskQuickView,
@@ -7,15 +7,13 @@ import {
   WeeklyFocusChart,
   RecentNotes,
   RecentConversations,
-  WeatherWidget,
-  DailyBriefWidget,
 } from '../modules/dashboard';
 
 /**
  * 首页 — 个人科研工作台仪表盘
  *
  * 模块化集成所有核心功能的数据概览：
- * - 欢迎横幅：用户问候 + 快捷操作入口
+ * - 顶部总览：用户问候 + 天气 + 今日简报
  * - 统计概览：待办、日程、专注、文献四大关键指标
  * - 今日日程时间线
  * - 待办快览（可勾选完成）
@@ -25,14 +23,11 @@ import {
 export default function Home() {
   return (
     <div className="space-y-4">
-      {/* 欢迎横幅 */}
-      <WelcomeBanner />
+      {/* 顶部总览：问候 + 天气 + 今日简报 */}
+      <HeaderOverview />
 
       {/* 统计概览 */}
       <StatOverview />
-
-      {/* AI 每日简报 */}
-      <DailyBriefWidget />
 
       {/* 主内容区 — 双栏布局 */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -44,7 +39,6 @@ export default function Home() {
 
         {/* 右栏（2/5） */}
         <div className="lg:col-span-2 space-y-4">
-          <WeatherWidget />
           <PomodoroMini />
           <WeeklyFocusChart />
           <RecentNotes />

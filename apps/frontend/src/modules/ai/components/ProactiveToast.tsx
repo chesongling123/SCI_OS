@@ -194,7 +194,7 @@ function ToastItem({
  * 固定右上角，堆叠显示多条建议
  */
 export function ProactiveToast() {
-  const { suggestions, fetchPending, dismissAll } = useProactiveStore();
+  const { suggestions, dismissAll } = useProactiveStore();
 
   // 只显示前 3 条，避免刷屏
   const visible = suggestions.slice(0, 3);

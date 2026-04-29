@@ -1,5 +1,48 @@
 # 变更日志
 
+## 2026-04-29 — HeaderOverview 融合式重构
+
+### 设计目标
+将首页仪表盘顶部的 WelcomeBanner + WeatherWidget + DailyBriefWidget 三个独立组件融合为一个视觉统一的整体模块，以天气氛围作为整个模块的背景基调。
+
+### 主要变更
+
+#### 1. 组件架构
+- 删除独立的 `WelcomeBanner.tsx`、`WeatherWidget.tsx`、`DailyBriefWidget.tsx`
+- 新建融合式 `HeaderOverview.tsx`（~780 行），单一组件内聚问候、天气、简报全部功能
+- 更新 `dashboard/index.ts` 导出、`Home.tsx` 布局引用
+
+#### 2. 天气氛围背景系统
+- 10 种天气主题配置（`getWeatherTheme`）：晴日/晴夜/多云/阴/雷阵雨/雨/雪/雾/沙尘/默认
+- 每种主题包含：线性渐变背景、径向高光、双动态光晕、图标配色、文字配色、卡片背景、粒子色、氛围词
+- 使用 oklch 色彩空间确保视觉一致性和通透感
+- 支持 `isDark` 标志自动适配深色/浅色文字对比度
+
+#### 3. 动态视觉效果
+- `AmbientBackground` 子组件：底层渐变 + 径向高光 + 双光晕（12s/15s 漂移动画）+ 顶部高光条 + 底部微光
+- `WeatherIcon` 子组件：图标 + 脉冲光晕（4s 呼吸动画）
+- CSS 动画：`animate-drift-slow`、`animate-drift-slow-reverse`、`animate-pulse-slow`
+- 噪点纹理：`.noise-texture` 伪元素叠加 SVG fractalNoise
+
+#### 4. 简报卡片
+- 独立玻璃态卡片悬浮在模块底部
+- `backdrop-filter: blur(20px) saturate(1.3)`
+- 支持有建议时的操作按钮（采纳/忽略）和无建议时的占位状态
+
+#### 5. 交互细节
+- 问候语旁显示天气氛围词标签（"月色清朗"/"细雨绵绵"等）
+- `—— ✧ ——` 装饰分隔线
+- 快捷按钮玻璃态悬浮效果（hover 上浮 + 阴影增强）
+- 城市编辑、天气刷新完整功能保留
+
+### 技术细节
+- 天气数据优先从 API 获取，localStorage 3 小时缓存兜底
+- 修复 `ProactiveToast.tsx` 未使用变量 `fetchPending`
+- 修复 `useProactiveStore` 类型引用（显式导入 `ProactiveSuggestion`）
+- 全量构建通过：`pnpm build` 零错误
+
+---
+
 ## 2026-04-26 — 品牌重命名：PhD → ResearchOS / 科研生活助手
 
 ### 变更背景

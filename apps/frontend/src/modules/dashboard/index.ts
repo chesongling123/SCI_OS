@@ -2,7 +2,7 @@
  * 首页仪表盘模块 — 统一导出所有 widget 组件
  */
 
-export { WelcomeBanner } from './components/WelcomeBanner';
+export { HeaderOverview } from './components/HeaderOverview';
 export { StatOverview } from './components/StatOverview';
 export { TodayTimeline } from './components/TodayTimeline';
 export { TaskQuickView } from './components/TaskQuickView';
