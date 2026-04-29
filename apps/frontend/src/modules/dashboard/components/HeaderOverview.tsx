@@ -776,6 +776,10 @@ export function HeaderOverview() {
               </div>
             ) : localWeather ? (
               <div className="flex items-center gap-4">
+                {/* 实时时钟 */}
+                <LiveClock theme={theme} />
+                {/* 垂直分隔线 */}
+                <div className="h-10 w-px" style={{ background: 'oklch(1 0 0 / 0.2)' }} />
                 {/* 天气图标 */}
                 <WeatherIcon icon={localWeather.icon} size={44} />
                 {/* 温度与天气文字 */}
@@ -800,9 +804,6 @@ export function HeaderOverview() {
                     <span>{localWeather.windDir} {localWeather.windScale}级</span>
                   </div>
                 </div>
-                {/* 垂直分隔线 + 实时时钟 */}
-                <div className="h-10 w-px mx-1" style={{ background: 'oklch(1 0 0 / 0.2)' }} />
-                <LiveClock theme={theme} />
               </div>
             ) : null}
           </div>
