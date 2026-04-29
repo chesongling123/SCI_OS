@@ -1685,3 +1685,28 @@
   background-repeat: repeat;
   background-size: 128px 128px;
 }
+
+/* ─────────────── 实时时钟动画 ─────────────── */
+
+@keyframes clock-tick {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes clock-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px oklch(1 0 0 / 0.15), inset 0 1px 0 oklch(1 0 0 / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px oklch(1 0 0 / 0.25), inset 0 1px 0 oklch(1 0 0 / 0.3);
+  }
+}
+
+@layer utilities {
+  .animate-clock-tick {
+    animation: clock-tick 1s ease-in-out infinite;
+  }
+  .animate-clock-glow {
+    animation: clock-glow 3s ease-in-out infinite;
+  }
+}
