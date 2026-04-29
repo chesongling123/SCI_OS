@@ -63,64 +63,25 @@ function LiveClock({ theme }: { theme: ReturnType<typeof getWeatherTheme> }) {
   const hours = time.getHours().toString().padStart(2, '0');
   const minutes = time.getMinutes().toString().padStart(2, '0');
   const seconds = time.getSeconds().toString().padStart(2, '0');
-  const ms = time.getMilliseconds();
-  const secProgress = ((time.getSeconds() + ms / 1000) / 60) * 100;
 
   return (
-    <div
-      className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl animate-clock-glow"
-      style={{
-        background: 'oklch(1 0 0 / 0.1)',
-        border: '1px solid oklch(1 0 0 / 0.15)',
-        backdropFilter: 'blur(12px)',
-      }}
-    >
-      {/* 秒针进度环 */}
-      <div className="relative w-8 h-8 flex-shrink-0">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 32 32">
-          {/* 背景环 */}
-          <circle
-            cx="16" cy="16" r="13"
-            fill="none"
-            stroke={theme.isDark ? 'oklch(1 0 0 / 0.1)' : 'oklch(0 0 0 / 0.08)'}
-            strokeWidth="2"
-          />
-          {/* 进度环 */}
-          <circle
-            cx="16" cy="16" r="13"
-            fill="none"
-            stroke={theme.accentColor}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 13}`}
-            strokeDashoffset={`${2 * Math.PI * 13 * (1 - secProgress / 100)}`}
-            style={{ transition: 'stroke-dashoffset 0.3s ease-out' }}
-          />
-        </svg>
-        {/* 中心时钟图标 */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Clock className="w-3.5 h-3.5" style={{ color: theme.accentColor, opacity: 0.9 }} />
-        </div>
-      </div>
-
-      {/* 时间数字 */}
-      <div className="flex items-baseline gap-0.5 tabular-nums">
-        <span className="text-[22px] font-bold tracking-tight leading-none" style={{ color: theme.textColor }}>
-          {hours}
-        </span>
-        <span className="text-lg font-light animate-clock-tick leading-none pb-0.5" style={{ color: theme.textMuted }}>
-          :
-        </span>
-        <span className="text-[22px] font-bold tracking-tight leading-none" style={{ color: theme.textColor }}>
-          {minutes}
-        </span>
-        <span className="text-lg font-light animate-clock-tick leading-none pb-0.5" style={{ color: theme.textMuted }}>
-          :
-        </span>
-        <span className="text-[22px] font-bold tracking-tight leading-none w-[26px] text-center" style={{ color: theme.accentColor }}>
-          {seconds}
-        </span>
-      </div>
+    <div className="flex items-center gap-1.5 tabular-nums">
+      <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: theme.accentColor, opacity: 0.7 }} />
+      <span className="text-sm font-semibold tracking-tight" style={{ color: theme.textColor }}>
+        {hours}
+      </span>
+      <span className="text-sm animate-clock-tick" style={{ color: theme.textMuted }}>
+        :
+      </span>
+      <span className="text-sm font-semibold tracking-tight" style={{ color: theme.textColor }}>
+        {minutes}
+      </span>
+      <span className="text-sm animate-clock-tick" style={{ color: theme.textMuted }}>
+        :
+      </span>
+      <span className="text-sm font-semibold tracking-tight w-[18px]" style={{ color: theme.accentColor }}>
+        {seconds}
+      </span>
     </div>
   );
 }
@@ -752,11 +713,8 @@ export function HeaderOverview() {
             </div>
           </div>
 
-          {/* 右侧：时钟 + 天气信息 */}
-          <div className="flex-shrink-0 flex flex-col items-end gap-3">
-            {/* 实时时钟 */}
-            <LiveClock theme={theme} />
-
+          {/* 右侧：天气信息 */}
+          <div className="flex-shrink-0">
             {/* 城市 + 刷新 */}
             <div className="flex items-center justify-end gap-2 mb-1.5">
               {isEditing ? (
@@ -817,8 +775,10 @@ export function HeaderOverview() {
                 <Loader2 className="w-5 h-5 animate-spin" style={{ color: theme.textMuted }} />
               </div>
             ) : localWeather ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
+                {/* 天气图标 */}
                 <WeatherIcon icon={localWeather.icon} size={44} />
+                {/* 温度与天气文字 */}
                 <div>
                   <div className="flex items-baseline gap-1">
                     <span
@@ -840,6 +800,9 @@ export function HeaderOverview() {
                     <span>{localWeather.windDir} {localWeather.windScale}级</span>
                   </div>
                 </div>
+                {/* 垂直分隔线 + 实时时钟 */}
+                <div className="h-10 w-px mx-1" style={{ background: 'oklch(1 0 0 / 0.2)' }} />
+                <LiveClock theme={theme} />
               </div>
             ) : null}
           </div>
