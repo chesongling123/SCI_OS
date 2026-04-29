@@ -65,23 +65,25 @@ function LiveClock({ theme }: { theme: ReturnType<typeof getWeatherTheme> }) {
   const seconds = time.getSeconds().toString().padStart(2, '0');
 
   return (
-    <div className="flex items-center gap-1.5 tabular-nums">
-      <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: theme.accentColor, opacity: 0.7 }} />
-      <span className="text-sm font-semibold tracking-tight" style={{ color: theme.textColor }}>
-        {hours}
-      </span>
-      <span className="text-sm animate-clock-tick" style={{ color: theme.textMuted }}>
-        :
-      </span>
-      <span className="text-sm font-semibold tracking-tight" style={{ color: theme.textColor }}>
-        {minutes}
-      </span>
-      <span className="text-sm animate-clock-tick" style={{ color: theme.textMuted }}>
-        :
-      </span>
-      <span className="text-sm font-semibold tracking-tight w-[18px]" style={{ color: theme.accentColor }}>
-        {seconds}
-      </span>
+    <div className="flex items-center gap-2 tabular-nums">
+      <Clock className="w-5 h-5 flex-shrink-0" style={{ color: theme.accentColor, opacity: 0.7 }} />
+      <div className="flex items-baseline gap-1">
+        <span className="text-[28px] font-bold tracking-tighter leading-none" style={{ color: theme.textColor }}>
+          {hours}
+        </span>
+        <span className="text-xl font-light animate-clock-tick leading-none pb-1" style={{ color: theme.textMuted }}>
+          :
+        </span>
+        <span className="text-[28px] font-bold tracking-tighter leading-none" style={{ color: theme.textColor }}>
+          {minutes}
+        </span>
+        <span className="text-xl font-light animate-clock-tick leading-none pb-1" style={{ color: theme.textMuted }}>
+          :
+        </span>
+        <span className="text-[28px] font-bold tracking-tighter leading-none w-[34px] text-center" style={{ color: theme.accentColor }}>
+          {seconds}
+        </span>
+      </div>
     </div>
   );
 }
