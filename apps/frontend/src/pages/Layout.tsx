@@ -4,7 +4,7 @@ import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useProactiveStore } from '../stores/proactive';
 import { Calendar, CheckSquare, Timer, Home, Moon, Sun, LogOut, User, FileText, BookOpen, Settings } from 'lucide-react';
-import { AiChatButton } from '../modules/ai';
+import { AiCompanionBar } from '../modules/ai';
 import { ProactiveToast } from '../modules/ai/components/ProactiveToast';
 
 const navItems = [
@@ -147,8 +147,8 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* AI 助手浮动按钮 — 全局可访问 */}
-      <AiChatButton />
+      {/* AI 伴随式输入条 — 常驻底部 */}
+      <AiCompanionBar />
 
       {/* 主动建议 Toast 投递层 */}
       <ProactiveToast />

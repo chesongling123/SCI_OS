@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ToolCallIndicator } from './ToolCallIndicator';
@@ -9,8 +9,9 @@ interface AiMessageBubbleProps {
 }
 
 /**
- * AI 消息气泡组件
- * 用户消息右对齐纯文本，AI 消息左对齐支持 Markdown 渲染
+ * AI 消息气泡组件（微信风格改造版）
+ * 用户消息：右侧，渐变背景，带头像
+ * AI 消息：左侧，玻璃态背景，带头像
  */
 export function AiMessageBubble({ message }: AiMessageBubbleProps) {
   const isUser = message.role === 'user';
@@ -18,19 +19,29 @@ export function AiMessageBubble({ message }: AiMessageBubbleProps) {
   const isStreaming = message.status === 'streaming';
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className="max-w-[85%] space-y-1.5">
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2`}>
+      {/* AI 头像（左侧） */}
+      {!isUser && (
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-1"
+          style={{
+            background: 'linear-gradient(135deg, oklch(0.52 0.18 260), oklch(0.6 0.12 290))',
+          }}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-white" />
+        </div>
+      )}
+
+      <div className="max-w-[75%] space-y-1">
         {/* 消息气泡 */}
         <div
-          className={`rounded-2xl px-4 py-2.5 ${
-            isUser
-              ? 'text-white'
-              : 'text-foreground'
-          }`}
+          className="rounded-2xl px-4 py-2.5"
           style={
             isUser
               ? {
                   background: 'linear-gradient(135deg, oklch(0.52 0.18 260), oklch(0.6 0.12 290))',
+                  color: 'white',
+                  borderBottomRightRadius: '6px',
                 }
               : {
                   background: 'var(--glass-bg)',
@@ -38,6 +49,8 @@ export function AiMessageBubble({ message }: AiMessageBubbleProps) {
                   WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
                   border: '1px solid var(--glass-border)',
                   boxShadow: 'var(--glass-inset), var(--glass-shadow)',
+                  color: 'var(--text-on-glass)',
+                  borderBottomLeftRadius: '6px',
                 }
           }
         >
@@ -77,10 +90,26 @@ export function AiMessageBubble({ message }: AiMessageBubbleProps) {
         )}
 
         {/* 时间戳 */}
-        <div className={`text-[10px] px-1 ${isUser ? 'text-right' : 'text-left'}`} style={{ color: 'var(--text-muted)' }}>
+        <div
+          className={`text-[10px] px-1 ${isUser ? 'text-right' : 'text-left'}`}
+          style={{ color: 'var(--text-muted)', opacity: 0.7 }}
+        >
           {formatTime(message.timestamp)}
         </div>
       </div>
+
+      {/* 用户头像（右侧） */}
+      {isUser && (
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-1"
+          style={{
+            background: 'oklch(0.55 0.08 60 / 0.2)',
+            border: '1px solid oklch(0.55 0.08 60 / 0.3)',
+          }}
+        >
+          <User className="w-3.5 h-3.5" style={{ color: 'oklch(0.6 0.1 60)' }} />
+        </div>
+      )}
     </div>
   );
 }

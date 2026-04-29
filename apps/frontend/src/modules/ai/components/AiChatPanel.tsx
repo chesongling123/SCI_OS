@@ -27,18 +27,36 @@ import {
 } from '../hooks/useAiConversations';
 import { AiMessageBubble } from './AiMessageBubble';
 import { InlineSuggestion } from './InlineSuggestion';
+import type { ChatMessage } from '../types/ai.types';
 
 interface AiChatPanelProps {
   onClose?: () => void;
+  // 嵌入模式：由外部 AiCompanionBar 传入状态
+  embeddedMessages?: ChatMessage[];
+  embeddedIsStreaming?: boolean;
+  embeddedOnSend?: (text: string) => void;
+  embeddedOnCancel?: () => void;
 }
 
 /**
- * AI 聊天面板主体（Phase 3：支持对话持久化）
- * 液态玻璃风格，左侧对话列表 + 右侧聊天区域
+ * AI 聊天面板主体（伴随式改造版）
+ * 支持两种模式：
+ * 1. 独立模式（旧）：自己管理消息状态
+ * 2. 嵌入模式（新）：由 AiCompanionBar 传入状态，实现输入条与面板状态同步
+ *
+ * 液态玻璃风格，从底部向上展开，宽度与输入条对齐
  */
-export function AiChatPanel({ onClose }: AiChatPanelProps) {
+export function AiChatPanel({
+  onClose,
+  embeddedMessages,
+  embeddedIsStreaming,
+  embeddedOnSend,
+  embeddedOnCancel,
+}: AiChatPanelProps) {
+  const isEmbedded = embeddedMessages !== undefined && embeddedOnSend !== undefined;
+
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // 默认收起，更简洁
   const [input, setInput] = useState('');
   const [activeCommand, setActiveCommand] = useState<string | null>(null);
   const [showCommandMenu, setShowCommandMenu] = useState(false);
@@ -47,19 +65,28 @@ export function AiChatPanel({ onClose }: AiChatPanelProps) {
   const { status: aiStatus, check: recheckAi } = useAiStatus();
   const aiAvailable = aiStatus === 'available';
 
+  // 独立模式使用自己的 hook，嵌入模式使用外部传入的状态
+  const independentChat = useAiChat(selectedConversationId);
+
   const {
-    messages,
-    isStreaming,
+    messages: independentMessages,
+    isStreaming: independentIsStreaming,
     currentConversationId,
-    sendMessage,
-    cancel,
+    sendMessage: independentSendMessage,
+    cancel: independentCancel,
     clear,
     loadHistory,
     addMessages,
     updateMessage,
     useMock,
     resetMock,
-  } = useAiChat(selectedConversationId);
+  } = independentChat;
+
+  // 统一状态访问
+  const messages = isEmbedded ? embeddedMessages! : independentMessages;
+  const isStreaming = isEmbedded ? embeddedIsStreaming! : independentIsStreaming;
+  const sendMessage = isEmbedded ? embeddedOnSend! : independentSendMessage;
+  const cancel = isEmbedded ? embeddedOnCancel! : independentCancel;
 
   const { data: conversations, isLoading: convLoading } = useAiConversations();
   const { data: conversationDetail } = useAiConversation(selectedConversationId);
@@ -271,24 +298,20 @@ export function AiChatPanel({ onClose }: AiChatPanelProps) {
     return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
   };
 
-  const panelWidth = sidebarOpen ? 520 : 400;
-
   return (
     <div
-      className="flex rounded-2xl overflow-hidden"
+      className="flex rounded-2xl overflow-hidden w-full"
       style={{
-        width: `${panelWidth}px`,
-        height: '600px',
+        height: '480px',
         background: 'var(--glass-bg)',
         backdropFilter: 'blur(24px) saturate(1.4)',
         WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
         border: '1px solid var(--glass-border)',
         borderTopColor: 'var(--glass-border-highlight)',
         boxShadow: 'var(--glass-inset), var(--glass-shadow-strong)',
-        transition: 'width 200ms ease',
       }}
     >
-      {/* 左侧对话列表 */}
+      {/* 左侧对话列表（可收起） */}
       {sidebarOpen && (
         <div
           className="flex flex-col border-r shrink-0"
@@ -447,10 +470,11 @@ export function AiChatPanel({ onClose }: AiChatPanelProps) {
             {onClose && (
               <button
                 onClick={onClose}
-                className="text-xs px-2 py-1 rounded-lg transition-colors hover:bg-white/10"
+                className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
                 style={{ color: 'var(--text-muted)' }}
+                title="收起"
               >
-                收起
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -541,116 +565,118 @@ export function AiChatPanel({ onClose }: AiChatPanelProps) {
           <div ref={scrollRef} />
         </div>
 
-        {/* 输入区 */}
-        <div
-          className="px-4 py-3 border-t"
-          style={{ borderColor: 'var(--glass-border)' }}
-        >
-          <form onSubmit={handleSubmit} className="flex gap-2 relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="输入问题，或 / 查看快捷命令…"
-              disabled={isStreaming || isQuickLoading}
-              className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none transition-colors disabled:opacity-60"
-              style={{
-                background: 'var(--glass-bg)',
-                border: activeCommand ? '1px solid oklch(0.52 0.18 260)' : '1px solid var(--glass-border)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--glass-inset)',
-                paddingLeft: activeCommand ? '80px' : '12px',
-              }}
-            />
-            {/* 快捷命令面板 */}
-            {showCommandMenu && (
-              <div
-                className="absolute bottom-full left-0 mb-2 w-64 rounded-xl overflow-hidden z-10"
+        {/* 输入区（仅在独立模式显示，嵌入模式由 AiCompanionBar 提供输入） */}
+        {!isEmbedded && (
+          <div
+            className="px-4 py-3 border-t"
+            style={{ borderColor: 'var(--glass-border)' }}
+          >
+            <form onSubmit={handleSubmit} className="flex gap-2 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => handleInputChange(e.target.value)}
+                placeholder="输入问题，或 / 查看快捷命令…"
+                disabled={isStreaming || isQuickLoading}
+                className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none transition-colors disabled:opacity-60"
                 style={{
                   background: 'var(--glass-bg)',
-                  backdropFilter: 'blur(24px)',
-                  border: '1px solid var(--glass-border)',
-                  boxShadow: 'var(--glass-shadow-strong)',
+                  border: activeCommand ? '1px solid oklch(0.52 0.18 260)' : '1px solid var(--glass-border)',
+                  color: 'var(--text-primary)',
+                  boxShadow: 'var(--glass-inset)',
+                  paddingLeft: activeCommand ? '80px' : '12px',
                 }}
-              >
-                <div className="px-3 py-2 text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                  快捷命令
+              />
+              {/* 快捷命令面板 */}
+              {showCommandMenu && (
+                <div
+                  className="absolute bottom-full left-0 mb-2 w-64 rounded-xl overflow-hidden z-10"
+                  style={{
+                    background: 'var(--glass-bg)',
+                    backdropFilter: 'blur(24px)',
+                    border: '1px solid var(--glass-border)',
+                    boxShadow: 'var(--glass-shadow-strong)',
+                  }}
+                >
+                  <div className="px-3 py-2 text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                    快捷命令
+                  </div>
+                  {[
+                    { cmd: 'translate', label: '翻译', desc: '将文本翻译成中文', icon: <Languages className="w-4 h-4" /> },
+                    { cmd: 'polish', label: '润色', desc: '让表达更专业流畅', icon: <Wand2 className="w-4 h-4" /> },
+                    { cmd: 'summarize', label: '摘要', desc: '提取文本核心要点', icon: <FileText className="w-4 h-4" /> },
+                  ].map((item) => (
+                    <button
+                      key={item.cmd}
+                      type="button"
+                      onClick={() => selectCommand(item.cmd)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-white/5"
+                    >
+                      <span style={{ color: 'var(--text-muted)' }}>{item.icon}</span>
+                      <div>
+                        <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                          /{item.cmd}
+                        </div>
+                        <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                          {item.desc}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                {[
-                  { cmd: 'translate', label: '翻译', desc: '将文本翻译成中文', icon: <Languages className="w-4 h-4" /> },
-                  { cmd: 'polish', label: '润色', desc: '让表达更专业流畅', icon: <Wand2 className="w-4 h-4" /> },
-                  { cmd: 'summarize', label: '摘要', desc: '提取文本核心要点', icon: <FileText className="w-4 h-4" /> },
-                ].map((item) => (
+              )}
+              {/* 当前激活命令标签 */}
+              {activeCommand && (
+                <div
+                  className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-0.5 rounded text-[10px]"
+                  style={{
+                    background: 'oklch(0.52 0.18 260 / 0.15)',
+                    color: 'oklch(0.6 0.15 260)',
+                  }}
+                >
+                  {activeCommand === 'translate' && <Languages className="w-3 h-3" />}
+                  {activeCommand === 'polish' && <Wand2 className="w-3 h-3" />}
+                  {activeCommand === 'summarize' && <FileText className="w-3 h-3" />}
+                  {activeCommand}
                   <button
-                    key={item.cmd}
                     type="button"
-                    onClick={() => selectCommand(item.cmd)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-white/5"
+                    onClick={() => {
+                      setActiveCommand(null);
+                      setInput('');
+                    }}
+                    className="ml-0.5"
                   >
-                    <span style={{ color: 'var(--text-muted)' }}>{item.icon}</span>
-                    <div>
-                      <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-                        /{item.cmd}
-                      </div>
-                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                        {item.desc}
-                      </div>
-                    </div>
+                    <X className="w-3 h-3" />
                   </button>
-                ))}
-              </div>
-            )}
-            {/* 当前激活命令标签 */}
-            {activeCommand && (
-              <div
-                className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-0.5 rounded text-[10px]"
-                style={{
-                  background: 'oklch(0.52 0.18 260 / 0.15)',
-                  color: 'oklch(0.6 0.15 260)',
-                }}
-              >
-                {activeCommand === 'translate' && <Languages className="w-3 h-3" />}
-                {activeCommand === 'polish' && <Wand2 className="w-3 h-3" />}
-                {activeCommand === 'summarize' && <FileText className="w-3 h-3" />}
-                {activeCommand}
+                </div>
+              )}
+              {isStreaming || isQuickLoading ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveCommand(null);
-                    setInput('');
-                  }}
-                  className="ml-0.5"
+                  onClick={cancel}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 shrink-0"
+                  style={{ background: 'oklch(0.55 0.15 25)' }}
+                  title="取消"
                 >
-                  <X className="w-3 h-3" />
+                  <Square className="w-4 h-4" />
                 </button>
-              </div>
-            )}
-            {isStreaming || isQuickLoading ? (
-              <button
-                type="button"
-                onClick={cancel}
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 shrink-0"
-                style={{ background: 'oklch(0.55 0.15 25)' }}
-                title="取消"
-              >
-                <Square className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={!input.trim()}
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 disabled:opacity-40 shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, oklch(0.52 0.18 260), oklch(0.6 0.12 290))',
-                }}
-                title="发送"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            )}
-          </form>
-        </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim()}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 disabled:opacity-40 shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, oklch(0.52 0.18 260), oklch(0.6 0.12 290))',
+                  }}
+                  title="发送"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              )}
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

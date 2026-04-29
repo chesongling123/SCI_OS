@@ -3,7 +3,7 @@
  */
 
 export { AiChatPanel } from './components/AiChatPanel';
-export { AiChatButton } from './components/AiChatButton';
+export { AiCompanionBar } from './components/AiCompanionBar';
 export { AiMessageBubble } from './components/AiMessageBubble';
 export { ToolCallIndicator } from './components/ToolCallIndicator';
 export { useAiChat } from './hooks/useAiChat';
