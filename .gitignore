@@ -11,6 +11,8 @@ build/
 .env
 .env.local
 .env.*.local
+.env.backup
+.env.backup.*
 
 # 日志
 logs/
